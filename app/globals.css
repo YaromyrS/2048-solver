@@ -1,0 +1,553 @@
+:root {
+  --bg: #faf8ef;
+  --text: #776e65;
+  --text-muted: #8f857d;
+  --board-bg: #bbada0;
+  --cell-empty: rgba(238, 228, 218, 0.35);
+  --accent: #8f7a66;
+  --accent-hover: #9f8b77;
+
+  /* per-board sizing, overridden inline for the small comparison boards */
+  --cell-size: 88px;
+  --gap: 10px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Clear Sans", "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 14px 16px 28px;
+}
+
+/* ---- top bar ---- */
+.topbar {
+  width: 100%;
+  max-width: 660px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.topbar__title {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon-btn {
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #f9f6f2;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.icon-btn:hover {
+  background: var(--accent-hover);
+}
+
+/* ---- shared layout ---- */
+.stage {
+  width: 100%;
+  max-width: 660px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  margin-top: 6px;
+}
+
+.instruction {
+  font-size: 15px;
+  color: var(--text);
+  text-align: center;
+  max-width: 520px;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.status {
+  font-size: 15px;
+  color: var(--text-muted);
+  margin: 0;
+  min-height: 20px;
+}
+
+.hint {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: -4px 0 0;
+  text-align: center;
+}
+
+.hint--warn {
+  color: #b1442b;
+  font-weight: 700;
+  margin: 0;
+}
+
+/* ---- avoid-2048 toggle ---- */
+.settings-bar {
+  width: 100%;
+  max-width: 660px;
+  display: flex;
+  justify-content: flex-end;
+  margin: -2px 0 4px;
+}
+
+.landing__toggle {
+  margin: 2px 0;
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  border: none;
+  background: transparent;
+  padding: 4px 2px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.toggle__track {
+  position: relative;
+  width: 38px;
+  height: 22px;
+  border-radius: 999px;
+  background: #cabfb2;
+  transition: background 0.15s ease;
+  flex-shrink: 0;
+}
+
+.toggle__thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #f9f6f2;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s ease;
+}
+
+.toggle--on .toggle__track {
+  background: var(--accent);
+}
+
+.toggle--on .toggle__thumb {
+  transform: translateX(16px);
+}
+
+.toggle--on {
+  color: var(--text);
+}
+
+.toggle:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.btn {
+  border: none;
+  border-radius: 8px;
+  padding: 14px 26px;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.12s ease, transform 0.05s ease;
+}
+
+.btn--primary {
+  background: var(--accent);
+  color: #f9f6f2;
+}
+
+.btn--primary:hover {
+  background: var(--accent-hover);
+}
+
+.btn--primary:active {
+  transform: translateY(1px);
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--accent);
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.btn--ghost:hover {
+  background: rgba(143, 122, 102, 0.1);
+}
+
+.btn--ghost:active {
+  transform: translateY(1px);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ---- landing ---- */
+.landing {
+  margin-top: 8vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+}
+
+.landing__title {
+  font-size: 54px;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -1px;
+}
+
+.landing__subtitle {
+  font-size: 18px;
+  color: var(--text-muted);
+  margin: 0 0 12px;
+  max-width: 420px;
+  line-height: 1.5;
+}
+
+.landing__actions {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.landing__hint {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 6px 0 0;
+  max-width: 360px;
+  line-height: 1.5;
+}
+
+/* ---- board ---- */
+.board {
+  display: grid;
+  grid-template-columns: repeat(4, var(--cell-size));
+  grid-auto-rows: var(--cell-size);
+  gap: var(--gap);
+  padding: var(--gap);
+  background: var(--board-bg);
+  border-radius: 8px;
+}
+
+.cell {
+  background: var(--cell-empty);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  user-select: none;
+}
+
+.cell--clickable {
+  cursor: pointer;
+  transition: background 0.12s ease, box-shadow 0.12s ease;
+}
+
+.cell--clickable:hover {
+  background: rgba(238, 228, 218, 0.65);
+  box-shadow: inset 0 0 0 2px rgba(143, 122, 102, 0.5);
+}
+
+.cell--clickable:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* classic 2048 tile palette */
+.tile-2 { background: #eee4da; color: #776e65; }
+.tile-4 { background: #ede0c8; color: #776e65; }
+.tile-8 { background: #f2b179; color: #f9f6f2; }
+.tile-16 { background: #f59563; color: #f9f6f2; }
+.tile-32 { background: #f67c5f; color: #f9f6f2; }
+.tile-64 { background: #f65e3b; color: #f9f6f2; }
+.tile-128 { background: #edcf72; color: #f9f6f2; }
+.tile-256 { background: #edcc61; color: #f9f6f2; }
+.tile-512 { background: #edc850; color: #f9f6f2; }
+.tile-1024 { background: #edc53f; color: #f9f6f2; }
+.tile-2048 { background: #edc22e; color: #f9f6f2; }
+.tile-super { background: #3c3a32; color: #f9f6f2; }
+
+/* ---- before/after comparison ---- */
+.comparison {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.comparison__side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.comparison__caption {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* de-emphasise the static "Now" board so the tappable one stands out */
+.comparison__side--muted .board {
+  opacity: 0.62;
+}
+
+/* the "after" board the user taps to add the spawned tile */
+.comparison__side--active .board {
+  box-shadow: 0 0 0 3px var(--accent);
+  border-radius: 8px;
+  animation: tap-pulse 3s ease-in-out infinite;
+}
+
+/* resting affordance: empty cells look like tappable slots */
+.comparison__side--active .cell--clickable {
+  box-shadow: inset 0 0 0 2px rgba(143, 122, 102, 0.4);
+}
+
+.comparison__caption--active {
+  color: #f9f6f2;
+  background: var(--accent);
+  padding: 4px 12px;
+  border-radius: 999px;
+  text-transform: none;
+  letter-spacing: 0.2px;
+}
+
+@keyframes tap-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px var(--accent);
+  }
+  50% {
+    box-shadow: 0 0 0 3px var(--accent), 0 0 0 9px rgba(143, 122, 102, 0.28);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .comparison__side--active .board {
+    animation: none;
+  }
+}
+
+.direction {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  color: var(--accent);
+  min-width: 64px;
+}
+
+.direction__glyph {
+  font-size: 42px;
+  line-height: 1;
+  font-weight: 800;
+}
+
+.direction__label {
+  font-size: 16px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ---- number selector ---- */
+.number-selector {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.selector-tile {
+  width: 52px;
+  height: 52px;
+  border: 3px solid transparent;
+  border-radius: 6px;
+  font-size: 26px;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: inherit;
+  opacity: 0.55;
+  transition: opacity 0.12s ease, border-color 0.12s ease, transform 0.05s ease;
+}
+
+.selector-tile--active {
+  opacity: 1;
+  border-color: var(--accent);
+  transform: scale(1.05);
+}
+
+/* ---- add-tile selector row (below the proposal comparison) ---- */
+.addtile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.addtile__label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ---- continue editor palette ---- */
+.tile-palette {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  max-width: 520px;
+}
+
+.palette-tile {
+  min-width: 52px;
+  height: 44px;
+  padding: 0 8px;
+  border: 3px solid transparent;
+  border-radius: 6px;
+  font-size: 18px;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: inherit;
+  opacity: 0.55;
+  transition: opacity 0.12s ease, border-color 0.12s ease, transform 0.05s ease;
+}
+
+.palette-tile--active {
+  opacity: 1;
+  border-color: var(--accent);
+  transform: scale(1.05);
+}
+
+.palette-erase {
+  background: #d8cfc4;
+  color: #776e65;
+}
+
+/* ---- confirmation modal ---- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(60, 58, 50, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 100;
+}
+
+.modal {
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 28px 26px 22px;
+  max-width: 380px;
+  width: 100%;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  text-align: center;
+}
+
+.modal__title {
+  font-size: 24px;
+  font-weight: 800;
+  margin: 0 0 10px;
+}
+
+.modal__message {
+  font-size: 16px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0 0 22px;
+}
+
+.modal__actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.modal__actions .btn {
+  padding: 12px 22px;
+  font-size: 16px;
+}
+
+/* ---- game over ---- */
+.gameover {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  text-align: center;
+}
+
+.gameover h2 {
+  font-size: 34px;
+  margin: 0;
+}
+
+/* ---- responsive ---- */
+@media (max-width: 540px) {
+  :root {
+    --cell-size: 70px;
+    --gap: 9px;
+  }
+  .landing__title { font-size: 48px; }
+  .topbar__title { font-size: 26px; }
+}
