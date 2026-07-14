@@ -28,7 +28,7 @@ const FRAMES: DemoFrame[] = [
   { board: [[8, 0, 0, 0], [2, 2, 0, 0], [8, 0, 0, 0], [2, 0, 0, 0]], direction: 'up' },
 ];
 
-const FRAME_MS = 1600;
+const FRAME_MS = 2800;
 
 /** Decorative auto-playing board for the landing hero. */
 export function LandingDemo() {

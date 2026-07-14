@@ -86,10 +86,27 @@ body {
   margin-bottom: 8px;
 }
 
+/* the title is a button: clicking it returns to the start screen */
 .topbar__title {
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-family: inherit;
+  color: inherit;
   font-size: 32px;
   font-weight: 800;
   letter-spacing: -0.5px;
+  cursor: pointer;
+}
+
+.topbar__title:hover {
+  color: var(--accent);
+}
+
+.topbar__title:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 6px;
 }
 
 .topbar__actions {
@@ -155,7 +172,7 @@ body {
   margin: 0;
 }
 
-/* ---- avoid-2048 toggle ---- */
+/* ---- advanced settings (collapsible) ---- */
 .settings-bar {
   width: 100%;
   max-width: 660px;
@@ -164,62 +181,86 @@ body {
   margin: -2px 0 4px;
 }
 
-.landing__toggle {
+.landing__settings {
   margin: 2px 0;
 }
 
-.toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  border: none;
-  background: transparent;
-  padding: 4px 2px;
+.advanced__summary {
+  list-style: none;
   cursor: pointer;
-  font-family: inherit;
+  user-select: none;
+  padding: 4px 2px;
   font-size: 14px;
   font-weight: 700;
   color: var(--text-muted);
 }
 
-.toggle__track {
-  position: relative;
-  width: 38px;
-  height: 22px;
-  border-radius: 999px;
-  background: var(--track);
-  transition: background 0.15s ease;
-  flex-shrink: 0;
+.advanced__summary::-webkit-details-marker {
+  display: none;
 }
 
-.toggle__thumb {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #f9f6f2;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+.advanced__summary::before {
+  content: '▸';
+  display: inline-block;
+  margin-right: 7px;
   transition: transform 0.15s ease;
 }
 
-.toggle--on .toggle__track {
-  background: var(--accent);
+.advanced[open] .advanced__summary::before {
+  transform: rotate(90deg);
 }
 
-.toggle--on .toggle__thumb {
-  transform: translateX(16px);
-}
-
-.toggle--on {
+.advanced__summary:hover {
   color: var(--text);
 }
 
-.toggle:focus-visible {
+.advanced__summary:focus-visible {
   outline: 3px solid var(--accent);
   outline-offset: 2px;
   border-radius: 6px;
+}
+
+.advanced__body {
+  margin-top: 6px;
+  padding: 12px 14px;
+  background: var(--accent-soft);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  max-width: 300px;
+  text-align: left;
+}
+
+.advanced__label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.advanced__select {
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  background: var(--bg);
+  border: 2px solid var(--track);
+  border-radius: 6px;
+  padding: 7px 10px;
+  cursor: pointer;
+}
+
+.advanced__select:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.advanced__hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-muted);
 }
 
 .btn {
@@ -303,17 +344,16 @@ body {
   line-height: 1;
 }
 
+/* Gentle settle on each frame change — transform only, so it never blinks. */
 .demo__board {
-  animation: demo-tick 0.4s ease;
+  animation: demo-tick 0.5s ease-out;
 }
 
 @keyframes demo-tick {
   from {
-    opacity: 0.55;
-    transform: scale(0.985);
+    transform: scale(0.99);
   }
   to {
-    opacity: 1;
     transform: scale(1);
   }
 }

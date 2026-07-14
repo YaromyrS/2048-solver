@@ -36,11 +36,12 @@ export interface MoveSuggestion {
 /** Extra knobs for the search. */
 export interface SolveOptions {
   /**
-   * When true, forming the 2048 tile is treated as a terminal loss (this game
-   * ends the moment 2048 appears). The solver steers away from lines that reach
-   * it and never *suggests* a move that forms it — unless every legal move does.
+   * Largest tile the solver is allowed to form. Anything bigger is treated as a
+   * terminal loss (the game ends the moment that tile appears): the solver
+   * steers away from lines that pass the cap and never *suggests* a move that
+   * does — unless every legal move does. `null`/`undefined` means no cap.
    */
-  avoid2048?: boolean;
+  maxTile?: number | null;
 }
 
 /** Abandon a branch once the chance of actually reaching it drops below this. */
@@ -56,15 +57,9 @@ const SPAWNS: ReadonlyArray<readonly [value: number, prob: number]> = [
 ];
 
 /**
- * The tile that ends the game. With {@link SolveOptions.avoid2048} on, any board
- * containing a tile ≥ this is scored as a terminal loss — capping play at 1024.
- */
-const GAME_ENDING_TILE = 2048;
-
-/**
- * Value for a board that has already formed the game-ending tile: far below any
- * real position's heuristic (which runs in the millions), so the search always
- * prefers any non-ending continuation over it.
+ * Value for a board that has already passed the tile cap: far below any real
+ * position's heuristic (which runs in the millions), so the search always
+ * prefers any within-cap continuation over it.
  */
 const ENDING_TILE_PENALTY = -1e9;
 
@@ -79,11 +74,11 @@ const ENDING_TILE_PENALTY = -1e9;
  */
 const GAME_OVER_SCORE = 0;
 
-/** True if any cell holds the game-ending tile (or larger). */
-function reachesEndingTile(board: Board): boolean {
+/** True if any cell exceeds the tile cap — i.e. holds a game-ending tile. */
+function exceedsCap(board: Board, maxTile: number): boolean {
   for (const row of board) {
     for (const v of row) {
-      if (v >= GAME_ENDING_TILE) return true;
+      if (v > maxTile) return true;
     }
   }
   return false;
@@ -92,7 +87,8 @@ function reachesEndingTile(board: Board): boolean {
 interface SearchContext {
   cache: Map<string, number>;
   nodes: number;
-  avoid2048: boolean;
+  /** Largest allowed tile; `Infinity` when no cap is set. */
+  maxTile: number;
 }
 
 /**
@@ -124,9 +120,9 @@ function boardKey(board: Board): string {
 
 /** Chance node: average the value over every possible random spawn. */
 function chanceValue(board: Board, cumProb: number, depth: number, ctx: SearchContext): number {
-  // Forming 2048 ends the game: treat such a board as a terminal loss so the
-  // search steers away from any line that leads into it.
-  if (ctx.avoid2048 && reachesEndingTile(board)) return ENDING_TILE_PENALTY;
+  // Passing the tile cap ends the game: treat such a board as a terminal loss
+  // so the search steers away from any line that leads into it.
+  if (exceedsCap(board, ctx.maxTile)) return ENDING_TILE_PENALTY;
   if (depth <= 0 || cumProb < PROB_THRESHOLD || ctx.nodes >= NODE_BUDGET) {
     return heuristicScore(board);
   }
@@ -173,17 +169,17 @@ function maxValue(board: Board, cumProb: number, depth: number, ctx: SearchConte
  * worker-backed async entry point in client.ts instead.
  */
 export function bestMove(board: Board, options: SolveOptions = {}): MoveSuggestion | null {
-  const avoid2048 = options.avoid2048 ?? false;
+  const maxTile = options.maxTile ?? Infinity;
   const legal = legalMoves(board);
   if (legal.length === 0) return null;
 
   const depth = adaptiveDepth(board);
-  const ctx: SearchContext = { cache: new Map(), nodes: 0, avoid2048 };
+  const ctx: SearchContext = { cache: new Map(), nodes: 0, maxTile };
 
   let bestDirection = legal[0];
   let bestScore = -Infinity;
-  // With avoidance on, prefer the best move that does *not* form 2048; only fall
-  // back to a 2048-forming move when every legal move forms one (truly forced).
+  // With a cap set, prefer the best move that stays within it; only fall back
+  // to a cap-breaking move when every legal move breaks it (truly forced).
   let bestSafeDirection: Direction | null = null;
   let bestSafeScore = -Infinity;
 
@@ -194,13 +190,13 @@ export function bestMove(board: Board, options: SolveOptions = {}): MoveSuggesti
       bestScore = score;
       bestDirection = direction;
     }
-    if (avoid2048 && !reachesEndingTile(next) && score > bestSafeScore) {
+    if (!exceedsCap(next, maxTile) && score > bestSafeScore) {
       bestSafeScore = score;
       bestSafeDirection = direction;
     }
   }
 
-  if (avoid2048 && bestSafeDirection !== null) {
+  if (maxTile !== Infinity && bestSafeDirection !== null) {
     return { direction: bestSafeDirection, score: bestSafeScore };
   }
   return { direction: bestDirection, score: bestScore };
