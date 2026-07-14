@@ -15,9 +15,9 @@ function b(rows: number[][]): Board {
   return rows.map((r) => r.slice());
 }
 
-/** True if the board resulting from `direction` contains a 2048 (or larger) tile. */
-function moveForms2048(board: Board, direction: Direction): boolean {
-  return applyMove(board, direction).board.some((row) => row.some((v) => v >= 2048));
+/** True if the board resulting from `direction` contains a tile ≥ `tile`. */
+function moveFormsTile(board: Board, direction: Direction, tile: number): boolean {
+  return applyMove(board, direction).board.some((row) => row.some((v) => v >= tile));
 }
 
 /**
@@ -106,15 +106,15 @@ describe('bestMove', () => {
     expect(isGuaranteedLoss(board, 'left')).toBe(true);
     expect(isGuaranteedLoss(board, 'up')).toBe(false);
 
-    for (const avoid2048 of [false, true]) {
-      const suggestion = bestMove(board, { avoid2048 });
+    for (const maxTile of [null, 1024]) {
+      const suggestion = bestMove(board, { maxTile });
       expect(suggestion).not.toBeNull();
       expect(isGuaranteedLoss(board, suggestion!.direction)).toBe(false);
     }
   });
 });
 
-describe('bestMove — avoid2048', () => {
+describe('bestMove — maxTile cap', () => {
   // Merging left or right forms 2048; sliding down keeps the two 1024s apart.
   const nearWin = b([
     [1024, 1024, 0, 0],
@@ -123,21 +123,36 @@ describe('bestMove — avoid2048', () => {
     [0, 0, 0, 0],
   ]);
 
-  it('picks a move that does not form 2048 when one exists', () => {
-    const suggestion = bestMove(nearWin, { avoid2048: true });
+  it('picks a move that stays within the cap when one exists', () => {
+    const suggestion = bestMove(nearWin, { maxTile: 1024 });
     expect(suggestion).not.toBeNull();
-    expect(moveForms2048(nearWin, suggestion!.direction)).toBe(false);
+    expect(moveFormsTile(nearWin, suggestion!.direction, 2048)).toBe(false);
     // Down is the only safe move here.
     expect(suggestion!.direction).toBe('down');
   });
 
-  it('is free to form 2048 when avoidance is off (default)', () => {
-    // Sanity check that the guard is opt-in: default behaviour is unchanged, and
-    // passing avoid2048:false is equivalent to passing nothing.
-    expect(bestMove(nearWin, { avoid2048: false })).toEqual(bestMove(nearWin));
+  it('is free to form 2048 when no cap is set (default)', () => {
+    // Sanity check that the cap is opt-in: default behaviour is unchanged, and
+    // passing maxTile:null is equivalent to passing nothing.
+    expect(bestMove(nearWin, { maxTile: null })).toEqual(bestMove(nearWin));
   });
 
-  it('still returns a legal move when every option forms 2048 (forced)', () => {
+  it('respects caps other than 1024', () => {
+    // Same shape one power up: merging left or right forms 4096, which a 2048
+    // cap must avoid — down keeps the two 2048s apart.
+    const near4096 = b([
+      [2048, 2048, 0, 0],
+      [2, 4, 0, 0],
+      [0, 0, 0, 0],
+      [0, 0, 0, 0],
+    ]);
+    const suggestion = bestMove(near4096, { maxTile: 2048 });
+    expect(suggestion).not.toBeNull();
+    expect(moveFormsTile(near4096, suggestion!.direction, 4096)).toBe(false);
+    expect(suggestion!.direction).toBe('down');
+  });
+
+  it('still returns a legal move when every option breaks the cap (forced)', () => {
     // Only left and right are legal, and both merge the 1024s into 2048.
     const forced = b([
       [1024, 1024, 4, 2],
@@ -149,10 +164,10 @@ describe('bestMove — avoid2048', () => {
     expect(legalMoves(forced)).not.toContain('up');
     expect(legalMoves(forced)).not.toContain('down');
 
-    const suggestion = bestMove(forced, { avoid2048: true });
+    const suggestion = bestMove(forced, { maxTile: 1024 });
     expect(suggestion).not.toBeNull();
     expect(legalMoves(forced)).toContain(suggestion!.direction);
     // No way out: the forced suggestion does form 2048.
-    expect(moveForms2048(forced, suggestion!.direction)).toBe(true);
+    expect(moveFormsTile(forced, suggestion!.direction, 2048)).toBe(true);
   });
 });
