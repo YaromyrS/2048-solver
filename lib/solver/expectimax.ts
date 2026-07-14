@@ -169,8 +169,8 @@ function maxValue(board: Board, cumProb: number, depth: number, ctx: SearchConte
 
 /**
  * Suggest the best swipe for `board`, or `null` if the board is terminal
- * (no legal move — i.e. game over). Synchronous; see {@link computeBestMove}
- * for the async entry point the UI uses.
+ * (no legal move — i.e. game over). Synchronous; the UI goes through the
+ * worker-backed async entry point in client.ts instead.
  */
 export function bestMove(board: Board, options: SolveOptions = {}): MoveSuggestion | null {
   const avoid2048 = options.avoid2048 ?? false;
@@ -204,15 +204,4 @@ export function bestMove(board: Board, options: SolveOptions = {}): MoveSuggesti
     return { direction: bestSafeDirection, score: bestSafeScore };
   }
   return { direction: bestDirection, score: bestScore };
-}
-
-/**
- * Async wrapper around {@link bestMove}. Kept async so the computation can later
- * be moved to a Web Worker without touching any call sites.
- */
-export function computeBestMove(
-  board: Board,
-  options: SolveOptions = {},
-): Promise<MoveSuggestion | null> {
-  return Promise.resolve(bestMove(board, options));
 }

@@ -1,15 +1,54 @@
 :root {
   --bg: #faf8ef;
+  --surface: #faf8ef;
   --text: #776e65;
   --text-muted: #8f857d;
   --board-bg: #bbada0;
   --cell-empty: rgba(238, 228, 218, 0.35);
   --accent: #8f7a66;
   --accent-hover: #9f8b77;
+  --on-accent: #f9f6f2;
+  --accent-soft: rgba(143, 122, 102, 0.1);
+  --cell-hover: rgba(238, 228, 218, 0.65);
+  --ring: rgba(143, 122, 102, 0.5);
+  --ring-soft: rgba(143, 122, 102, 0.4);
+  --pulse: rgba(143, 122, 102, 0.28);
+  --track: #cabfb2;
+  --neutral-tile: #d8cfc4;
+  --neutral-tile-text: #776e65;
+  --warn: #b1442b;
+  --overlay: rgba(60, 58, 50, 0.55);
+  color-scheme: light;
 
-  /* per-board sizing, overridden inline for the small comparison boards */
-  --cell-size: 88px;
+  /* per-board sizing, overridden inline for the small comparison boards.
+     Fluid on narrow screens: never wider than the viewport minus page padding
+     (board width = 4 cells + 5 gaps, page padding = 16px per side). */
   --gap: 10px;
+  --cell-size: min(88px, calc((100vw - 32px - 5 * var(--gap)) / 4));
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #181614;
+    --surface: #242019;
+    --text: #e8e0d5;
+    --text-muted: #a89e92;
+    --board-bg: #3a352f;
+    --cell-empty: rgba(238, 228, 218, 0.08);
+    --accent: #a08b73;
+    --accent-hover: #b09b83;
+    --accent-soft: rgba(160, 139, 115, 0.16);
+    --cell-hover: rgba(238, 228, 218, 0.16);
+    --ring: rgba(200, 180, 158, 0.55);
+    --ring-soft: rgba(200, 180, 158, 0.4);
+    --pulse: rgba(200, 180, 158, 0.25);
+    --track: #5a5248;
+    --neutral-tile: #57504a;
+    --neutral-tile-text: #e8e0d5;
+    --warn: #e0765a;
+    --overlay: rgba(0, 0, 0, 0.6);
+    color-scheme: dark;
+  }
 }
 
 * {
@@ -25,7 +64,7 @@ body {
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: "Clear Sans", "Helvetica Neue", Arial, sans-serif;
+  font-family: var(--font-rubik), "Helvetica Neue", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -65,7 +104,7 @@ body {
   border: none;
   border-radius: 8px;
   background: var(--accent);
-  color: #f9f6f2;
+  color: var(--on-accent);
   font-size: 22px;
   line-height: 1;
   cursor: pointer;
@@ -111,7 +150,7 @@ body {
 }
 
 .hint--warn {
-  color: #b1442b;
+  color: var(--warn);
   font-weight: 700;
   margin: 0;
 }
@@ -148,7 +187,7 @@ body {
   width: 38px;
   height: 22px;
   border-radius: 999px;
-  background: #cabfb2;
+  background: var(--track);
   transition: background 0.15s ease;
   flex-shrink: 0;
 }
@@ -196,7 +235,7 @@ body {
 
 .btn--primary {
   background: var(--accent);
-  color: #f9f6f2;
+  color: var(--on-accent);
 }
 
 .btn--primary:hover {
@@ -214,7 +253,7 @@ body {
 }
 
 .btn--ghost:hover {
-  background: rgba(143, 122, 102, 0.1);
+  background: var(--accent-soft);
 }
 
 .btn--ghost:active {
@@ -229,12 +268,60 @@ body {
 
 /* ---- landing ---- */
 .landing {
-  margin-top: 8vh;
+  margin-top: clamp(16px, 5vh, 56px);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 14px;
   text-align: center;
+}
+
+/* auto-playing demo board in the hero (decorative) */
+.demo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 8px;
+}
+
+.demo__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--on-accent);
+  background: var(--accent);
+  padding: 4px 14px;
+  border-radius: 999px;
+  letter-spacing: 0.2px;
+}
+
+.demo__glyph {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.demo__board {
+  animation: demo-tick 0.4s ease;
+}
+
+@keyframes demo-tick {
+  from {
+    opacity: 0.55;
+    transform: scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .demo__board {
+    animation: none;
+  }
 }
 
 .landing__title {
@@ -291,11 +378,15 @@ body {
 .cell--clickable {
   cursor: pointer;
   transition: background 0.12s ease, box-shadow 0.12s ease;
+  /* fast taps (no double-tap zoom delay) and no iOS long-press callout,
+     since long-press places the alternate tile value */
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
 }
 
 .cell--clickable:hover {
-  background: rgba(238, 228, 218, 0.65);
-  box-shadow: inset 0 0 0 2px rgba(143, 122, 102, 0.5);
+  background: var(--cell-hover);
+  box-shadow: inset 0 0 0 2px var(--ring);
 }
 
 .cell--clickable:focus-visible {
@@ -316,6 +407,13 @@ body {
 .tile-1024 { background: #edc53f; color: #f9f6f2; }
 .tile-2048 { background: #edc22e; color: #f9f6f2; }
 .tile-super { background: #3c3a32; color: #f9f6f2; }
+
+/* on the dark board the near-black super tile needs an edge to stay visible */
+@media (prefers-color-scheme: dark) {
+  .tile-super {
+    box-shadow: inset 0 0 0 2px rgba(249, 246, 242, 0.18);
+  }
+}
 
 /* ---- before/after comparison ---- */
 .comparison {
@@ -355,11 +453,11 @@ body {
 
 /* resting affordance: empty cells look like tappable slots */
 .comparison__side--active .cell--clickable {
-  box-shadow: inset 0 0 0 2px rgba(143, 122, 102, 0.4);
+  box-shadow: inset 0 0 0 2px var(--ring-soft);
 }
 
 .comparison__caption--active {
-  color: #f9f6f2;
+  color: var(--on-accent);
   background: var(--accent);
   padding: 4px 12px;
   border-radius: 999px;
@@ -373,7 +471,7 @@ body {
     box-shadow: 0 0 0 3px var(--accent);
   }
   50% {
-    box-shadow: 0 0 0 3px var(--accent), 0 0 0 9px rgba(143, 122, 102, 0.28);
+    box-shadow: 0 0 0 3px var(--accent), 0 0 0 9px var(--pulse);
   }
 }
 
@@ -478,15 +576,15 @@ body {
 }
 
 .palette-erase {
-  background: #d8cfc4;
-  color: #776e65;
+  background: var(--neutral-tile);
+  color: var(--neutral-tile-text);
 }
 
 /* ---- confirmation modal ---- */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(60, 58, 50, 0.55);
+  background: var(--overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -495,7 +593,7 @@ body {
 }
 
 .modal {
-  background: var(--bg);
+  background: var(--surface);
   border-radius: 12px;
   padding: 28px 26px 22px;
   max-width: 380px;
@@ -542,12 +640,41 @@ body {
   margin: 0;
 }
 
+/* ---- footer ---- */
+.footer {
+  margin-top: auto;
+  padding-top: 26px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.footer strong {
+  color: var(--text);
+}
+
 /* ---- responsive ---- */
+
+/* stack the Now/After comparison vertically once side-by-side gets cramped */
+@media (max-width: 640px) {
+  .comparison {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .direction {
+    flex-direction: row;
+    gap: 8px;
+    min-width: 0;
+  }
+  .direction__glyph {
+    font-size: 32px;
+  }
+}
+
 @media (max-width: 540px) {
   :root {
-    --cell-size: 70px;
-    --gap: 9px;
+    --gap: 8px;
   }
-  .landing__title { font-size: 48px; }
-  .topbar__title { font-size: 26px; }
+  .landing__title { font-size: 44px; }
+  .topbar__title { font-size: 24px; }
+  .btn { padding: 12px 22px; font-size: 16px; }
 }
