@@ -1,4 +1,7 @@
-import type { CSSProperties, KeyboardEvent, MouseEvent } from 'react';
+'use client';
+
+import { useEffect, useRef } from 'react';
+import type { CSSProperties, KeyboardEvent, MouseEvent, PointerEvent } from 'react';
 import { type Board as BoardType, type Position } from '@/lib/game/board';
 
 interface BoardProps {
@@ -7,9 +10,9 @@ interface BoardProps {
   /** When provided, empty cells become clickable targets for placing a tile. */
   onCellClick?: (pos: Position) => void;
   /**
-   * Right-click (context menu) on a clickable cell — used to place the
-   * alternate tile value without switching the selector. Suppresses the
-   * browser context menu on those cells.
+   * Alternate placement — right-click on mouse, long-press on touch — used to
+   * place the alternate tile value without switching the selector. Suppresses
+   * the browser context menu on those cells.
    */
   onCellAltClick?: (pos: Position) => void;
   /**
@@ -35,6 +38,25 @@ const SMALL_SIZING: CSSProperties = {
   ['--gap' as string]: '8px',
 };
 
+/** Hold duration that counts as a long-press on touch. */
+const LONG_PRESS_MS = 450;
+
+/**
+ * Long-press bookkeeping. One board never has two simultaneous presses we care
+ * about, so a single ref suffices.
+ *
+ * `lastPointerType` disambiguates the `contextmenu` event: Android fires it for
+ * touch long-presses (which our own timer already handles), iOS doesn't fire it
+ * at all, and mouse right-clicks always fire it. Only the mouse case may place
+ * a tile from `contextmenu`, otherwise Android would place twice.
+ */
+interface PressState {
+  timer: ReturnType<typeof setTimeout> | null;
+  /** Cell where a long-press already placed a tile; swallows the trailing click. */
+  firedPos: Position | null;
+  lastPointerType: string;
+}
+
 export function Board({
   board,
   variant = 'normal',
@@ -43,25 +65,68 @@ export function Board({
   allowOverwrite = false,
 }: BoardProps) {
   const style = variant === 'small' ? SMALL_SIZING : undefined;
+  const press = useRef<PressState>({ timer: null, firedPos: null, lastPointerType: 'mouse' });
+
+  const cancelLongPress = () => {
+    if (press.current.timer !== null) {
+      clearTimeout(press.current.timer);
+      press.current.timer = null;
+    }
+  };
+
+  useEffect(() => cancelLongPress, []);
 
   return (
     <div className={`board board--${variant}`} style={style}>
       {board.map((row, r) =>
         row.map((value, c) => {
           const clickable = onCellClick !== undefined && (value === 0 || allowOverwrite);
-          const handleClick = clickable ? () => onCellClick({ row: r, col: c }) : undefined;
+          const pos: Position = { row: r, col: c };
+
+          const handleClick = clickable
+            ? () => {
+                // A long-press already placed here; ignore the click that
+                // follows when the finger lifts.
+                const fired = press.current.firedPos;
+                if (fired && fired.row === r && fired.col === c) {
+                  press.current.firedPos = null;
+                  return;
+                }
+                onCellClick(pos);
+              }
+            : undefined;
+
+          const handlePointerDown =
+            clickable && onCellAltClick
+              ? (e: PointerEvent<HTMLDivElement>) => {
+                  press.current.lastPointerType = e.pointerType;
+                  // a new press always starts clean — a stale firedPos from a
+                  // long-press whose click never arrived must not eat this tap
+                  press.current.firedPos = null;
+                  if (e.pointerType !== 'touch') return;
+                  cancelLongPress();
+                  press.current.timer = setTimeout(() => {
+                    press.current.timer = null;
+                    press.current.firedPos = pos;
+                    navigator.vibrate?.(30);
+                    onCellAltClick(pos);
+                  }, LONG_PRESS_MS);
+                }
+              : undefined;
+
           const handleContext =
             clickable && onCellAltClick
               ? (e: MouseEvent<HTMLDivElement>) => {
                   e.preventDefault();
-                  onCellAltClick({ row: r, col: c });
+                  if (press.current.lastPointerType !== 'touch') onCellAltClick(pos);
                 }
               : undefined;
+
           const handleKey = clickable
             ? (e: KeyboardEvent<HTMLDivElement>) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
-                  onCellClick({ row: r, col: c });
+                  onCellClick(pos);
                 }
               }
             : undefined;
@@ -76,6 +141,10 @@ export function Board({
               className={classes.join(' ')}
               style={value !== 0 ? { fontSize: `${fontSizeFor(value, variant)}px` } : undefined}
               onClick={handleClick}
+              onPointerDown={handlePointerDown}
+              onPointerUp={cancelLongPress}
+              onPointerCancel={cancelLongPress}
+              onPointerLeave={cancelLongPress}
               onContextMenu={handleContext}
               onKeyDown={handleKey}
               role={clickable ? 'button' : undefined}

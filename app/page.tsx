@@ -5,6 +5,7 @@ import { AvoidToggle } from '@/components/AvoidToggle';
 import { Board } from '@/components/Board';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { DirectionArrow } from '@/components/DirectionArrow';
+import { LandingDemo } from '@/components/LandingDemo';
 import { MenuButton } from '@/components/MenuButton';
 import { NumberSelector, type NewTileValue } from '@/components/NumberSelector';
 import { RestartButton } from '@/components/RestartButton';
@@ -20,7 +21,8 @@ import {
   type Board as BoardType,
   type Position,
 } from '@/lib/game/board';
-import { computeBestMove, type MoveSuggestion } from '@/lib/solver/expectimax';
+import { computeBestMove } from '@/lib/solver/client';
+import { type MoveSuggestion } from '@/lib/solver/expectimax';
 
 type Phase = 'landing' | 'setup' | 'continue' | 'proposal' | 'gameover';
 
@@ -90,8 +92,8 @@ export default function Home() {
   }, [resetState]);
 
   // Compute the best move for `target`, then show it — or end the game if the
-  // board is terminal. A short yield lets the "Calculating…" state paint before
-  // the (main-thread) search runs.
+  // board is terminal. The search runs in a Web Worker; the short yield keeps
+  // the "Calculating…" state painting even on the sync (fallback) path.
   const solve = useCallback(async (target: BoardType, avoid: boolean) => {
     setComputing(true);
     await new Promise<void>((resolve) => setTimeout(resolve, 0));
@@ -239,6 +241,7 @@ export default function Home() {
           <p className="landing__subtitle">
             Tell it your board and it works out the best swipe — move after move.
           </p>
+          <LandingDemo />
           <div className="landing__actions">
             <button type="button" className="btn btn--primary" onClick={startGame}>
               Start Solving
@@ -325,7 +328,7 @@ export default function Home() {
             </p>
           )}
           <p className="hint">
-            Left-click drops <strong>{newTileValue}</strong>; right-click drops{' '}
+            Tap drops <strong>{newTileValue}</strong>; long-press (or right-click) drops{' '}
             <strong>{newTileValue === 2 ? 4 : 2}</strong>.
           </p>
           <p className="status">{computing ? 'Calculating best move…' : ''}</p>
@@ -343,6 +346,10 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      <footer className="footer">
+        Implemented by <strong>FlexDev</strong>
+      </footer>
 
       {pending && (
         <ConfirmDialog
