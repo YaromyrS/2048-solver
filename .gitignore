@@ -1,0 +1,38 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# env files
+.env
+.env*.local
+
+# typescript
+*.tsbuildinfo
+
+# vitest / coverage
+/coverage
+
+# local AI tooling (installer-managed, reinstallable — keep the app repo clean)
+/_bmad/
+/_bmad-output/
+/.claude/
+
+# crash dumps
+bash.exe.stackdump
