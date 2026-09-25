@@ -43,10 +43,16 @@ export function LandingInfo() {
         Yes, if it’s the standard 4×4 game where each swipe adds a 2 or a 4 — the original web
         version and most phone apps.
       </p>
+      <h3 className="info__question">Can it read my board from a screenshot?</h3>
+      <p className="info__answer">
+        Yes. Choose <strong>Continue Game</strong>, then import a screenshot of your game (or paste
+        one). It reads the original 2048 and play2048.co, in light or dark mode. Check the board
+        before solving: any tile it wasn’t sure about is outlined.
+      </p>
       <h3 className="info__question">Is it free? Is my board sent anywhere?</h3>
       <p className="info__answer">
         It’s free, with no sign-up and no ads. The AI runs entirely in your browser, so your board
-        never leaves your device.
+        never leaves your device. Screenshots are read on your device too, never uploaded.
       </p>
     </section>
   );
