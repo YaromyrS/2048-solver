@@ -24,7 +24,7 @@ import {
 } from '@/lib/game/board';
 import { computeBestMove } from '@/lib/solver/client';
 import { type MoveSuggestion } from '@/lib/solver/expectimax';
-import { SITE_NAME, TAGLINE } from '@/lib/site';
+import { BUG_REPORT_URL, REPO_URL, SITE_NAME, TAGLINE } from '@/lib/site';
 
 type Phase = 'landing' | 'setup' | 'continue' | 'proposal' | 'gameover';
 
@@ -357,7 +357,18 @@ export default function Home() {
       )}
 
       <footer className="footer">
-        Implemented by <strong>FlexDev</strong>
+        <p className="footer__credit">
+          Implemented by <strong>FlexDev</strong>
+        </p>
+        {/* New tab, so following a link mid-game never loses the board. */}
+        <nav className="footer__links" aria-label="Project links">
+          <a href={BUG_REPORT_URL} target="_blank" rel="noopener noreferrer">
+            Report a bug
+          </a>
+          <a href={REPO_URL} target="_blank" rel="noopener noreferrer">
+            Source on GitHub
+          </a>
+        </nav>
       </footer>
 
       {pending && (

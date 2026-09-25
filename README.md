@@ -51,6 +51,11 @@ every other branch to a preview URL. `vercel.json` runs the test suite before
 last good build. Day-to-day work happens on `dev` and reaches `main` through
 pull requests.
 
+## Found a bug?
+
+[Open a bug report](https://github.com/YaromyrS/2048-solver/issues/new?template=bug_report.yml).
+If the AI suggested a bad move, include the board so it can be reproduced.
+
 ## Credits
 
 The evaluation heuristic and its weights come from

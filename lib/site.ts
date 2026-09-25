@@ -11,6 +11,11 @@ export const SITE_URL = 'https://2048-solver-ai.vercel.app';
 
 export const SITE_NAME = '2048 AI Solver';
 
+export const REPO_URL = 'https://github.com/YaromyrS/2048-solver';
+
+/** Opens GitHub's bug-report form (.github/ISSUE_TEMPLATE/bug_report.yml). */
+export const BUG_REPORT_URL = `${REPO_URL}/issues/new?template=bug_report.yml`;
+
 export const TAGLINE = 'Tell it your board and the AI works out the best swipe — move after move.';
 
 export const DESCRIPTION =
