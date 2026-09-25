@@ -1,11 +1,11 @@
 import type { MetadataRoute } from 'next';
+import { DESCRIPTION, SITE_NAME } from '@/lib/site';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: '2048 Solver',
+    name: SITE_NAME,
     short_name: '2048 Solver',
-    description:
-      'Tell it your board and it works out the best swipe — move after move. Runs entirely in your browser.',
+    description: DESCRIPTION,
     start_url: '/',
     display: 'standalone',
     background_color: '#faf8ef',

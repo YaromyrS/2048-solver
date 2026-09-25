@@ -33,6 +33,7 @@ yarn-error.log*
 /_bmad/
 /_bmad-output/
 /.claude/
+/.playwright-mcp/
 
 # crash dumps
 bash.exe.stackdump

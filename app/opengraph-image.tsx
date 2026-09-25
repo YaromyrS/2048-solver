@@ -1,8 +1,9 @@
 import { ImageResponse } from 'next/og';
+import { SITE_NAME, TAGLINE } from '@/lib/site';
 
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
-export const alt = '2048 Solver — tell it your board and it works out the best swipe';
+export const alt = `${SITE_NAME} — ${TAGLINE}`;
 
 const TILE_COLORS: Record<number, { bg: string; fg: string }> = {
   2: { bg: '#eee4da', fg: '#776e65' },
@@ -78,11 +79,11 @@ export default function OpengraphImage() {
           ))}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', maxWidth: 520 }}>
-          <div style={{ fontSize: 84, fontWeight: 700, color: '#776e65', letterSpacing: '-3px' }}>
-            2048 Solver
+          <div style={{ fontSize: 76, fontWeight: 700, color: '#776e65', letterSpacing: '-3px' }}>
+            {SITE_NAME}
           </div>
           <div style={{ fontSize: 34, color: '#8f857d', marginTop: 18, lineHeight: 1.35 }}>
-            Tell it your board and it works out the best swipe — move after move.
+            {TAGLINE}
           </div>
           <div
             style={{
@@ -97,7 +98,7 @@ export default function OpengraphImage() {
               alignSelf: 'flex-start',
             }}
           >
-            expectimax search · runs in your browser
+            expectimax AI · runs in your browser
           </div>
         </div>
       </div>

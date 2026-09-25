@@ -6,6 +6,7 @@ import { Board } from '@/components/Board';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { DirectionArrow } from '@/components/DirectionArrow';
 import { LandingDemo } from '@/components/LandingDemo';
+import { LandingInfo } from '@/components/LandingInfo';
 import { MenuButton } from '@/components/MenuButton';
 import { NumberSelector, type NewTileValue } from '@/components/NumberSelector';
 import { RestartButton } from '@/components/RestartButton';
@@ -23,6 +24,7 @@ import {
 } from '@/lib/game/board';
 import { computeBestMove } from '@/lib/solver/client';
 import { type MoveSuggestion } from '@/lib/solver/expectimax';
+import { SITE_NAME, TAGLINE } from '@/lib/site';
 
 type Phase = 'landing' | 'setup' | 'continue' | 'proposal' | 'gameover';
 
@@ -227,7 +229,7 @@ export default function Home() {
             onClick={handleMenu}
             title="Back to the start screen"
           >
-            2048 Solver
+            {SITE_NAME}
           </button>
           <div className="topbar__actions">
             {canUndo && <UndoButton onClick={handleUndo} />}
@@ -245,10 +247,8 @@ export default function Home() {
 
       {phase === 'landing' && (
         <div className="landing">
-          <h1 className="landing__title">2048 Solver</h1>
-          <p className="landing__subtitle">
-            Tell it your board and it works out the best swipe — move after move.
-          </p>
+          <h1 className="landing__title">{SITE_NAME}</h1>
+          <p className="landing__subtitle">{TAGLINE}</p>
           <LandingDemo />
           <div className="landing__actions">
             <button type="button" className="btn btn--primary" onClick={startGame}>
@@ -267,6 +267,7 @@ export default function Home() {
             <br />
             Already mid-game? Use <strong>Continue Game</strong> to recreate your current board.
           </p>
+          <LandingInfo />
         </div>
       )}
 
