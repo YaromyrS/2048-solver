@@ -32,6 +32,7 @@ yarn-error.log*
 # local AI tooling (installer-managed, reinstallable — keep the app repo clean)
 /_bmad/
 /_bmad-output/
+/.playwright-mcp/
 
 # crash dumps
 bash.exe.stackdump

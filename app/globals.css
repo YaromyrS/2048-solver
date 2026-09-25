@@ -83,6 +83,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
   margin-bottom: 8px;
 }
 
@@ -97,6 +98,11 @@ body {
   font-weight: 800;
   letter-spacing: -0.5px;
   cursor: pointer;
+  /* one line, next to up to three icon buttons; truncate on the tiniest phones */
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .topbar__title:hover {
@@ -392,6 +398,50 @@ body {
   margin: 6px 0 0;
   max-width: 360px;
   line-height: 1.5;
+}
+
+/* "How it works" + FAQ below the hero */
+.info {
+  width: 100%;
+  max-width: 520px;
+  margin-top: 36px;
+  padding-top: 26px;
+  border-top: 2px solid var(--accent-soft);
+  text-align: left;
+}
+
+.info__heading {
+  font-size: 22px;
+  font-weight: 800;
+  margin: 0 0 12px;
+}
+
+.info__heading:not(:first-child) {
+  margin-top: 28px;
+}
+
+.info__steps {
+  margin: 0;
+  padding-left: 22px;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.info__steps li + li {
+  margin-top: 8px;
+}
+
+.info__question {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 18px 0 6px;
+}
+
+.info__answer {
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--text-muted);
+  margin: 0;
 }
 
 /* ---- board ---- */
@@ -717,4 +767,8 @@ body {
   .landing__title { font-size: 44px; }
   .topbar__title { font-size: 24px; }
   .btn { padding: 12px 22px; font-size: 16px; }
+}
+
+@media (max-width: 400px) {
+  .topbar__title { font-size: 21px; }
 }
