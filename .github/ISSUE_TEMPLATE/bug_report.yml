@@ -1,0 +1,26 @@
+name: Bug report
+description: Something in 2048 AI Solver doesn't work or looks wrong
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: board
+    attributes:
+      label: Board or screenshot
+      description: If the AI suggested a bad move, paste a screenshot or type the board row by row (use 0 for empty cells).
+      placeholder: |
+        128 64 32 8
+        16  32 8  4
+        4   8  2  0
+        2   0  0  0
+  - type: input
+    id: device
+    attributes:
+      label: Device and browser
+      placeholder: e.g. iPhone 15, Safari / Windows 11, Chrome
