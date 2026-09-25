@@ -10,6 +10,7 @@ import { LandingInfo } from '@/components/LandingInfo';
 import { MenuButton } from '@/components/MenuButton';
 import { NumberSelector, type NewTileValue } from '@/components/NumberSelector';
 import { RestartButton } from '@/components/RestartButton';
+import { ScreenshotImport } from '@/components/ScreenshotImport';
 import { TilePalette, type PaletteValue } from '@/components/TilePalette';
 import { UndoButton } from '@/components/UndoButton';
 import {
@@ -25,11 +26,14 @@ import {
 import { computeBestMove } from '@/lib/solver/client';
 import { type MoveSuggestion } from '@/lib/solver/expectimax';
 import { BUG_REPORT_URL, REPO_URL, SITE_NAME, TAGLINE } from '@/lib/site';
+import type { BoardReading } from '@/lib/vision/readBoard';
 
 type Phase = 'landing' | 'setup' | 'continue' | 'proposal' | 'gameover';
 
 const SETUP_TILES = 2;
 const CELL_COUNT = SIZE * SIZE;
+/** Screenshot tiles read with less confidence than this are outlined for a check. */
+const UNSURE_READING = 0.1;
 
 const DIRECTION_WORD: Record<MoveSuggestion['direction'], string> = {
   up: 'up',
@@ -37,6 +41,11 @@ const DIRECTION_WORD: Record<MoveSuggestion['direction'], string> = {
   left: 'left',
   right: 'right',
 };
+
+interface ImportNote {
+  text: string;
+  warn: boolean;
+}
 
 interface PendingConfirm {
   title: string;
@@ -67,6 +76,9 @@ export default function Home() {
   // This game ends at 2048, so the default caps play at 1024. Persists across
   // restarts (it's a preference, not board state).
   const [maxTile, setMaxTile] = useState<number | null>(1024);
+  // Result of the last screenshot import in the Continue editor.
+  const [importNote, setImportNote] = useState<ImportNote | null>(null);
+  const [flagged, setFlagged] = useState<boolean[][] | null>(null);
 
   const resetState = useCallback(() => {
     setBoard(emptyBoard());
@@ -77,6 +89,8 @@ export default function Home() {
     setPaletteValue(2);
     setComputing(false);
     setHistory([]);
+    setImportNote(null);
+    setFlagged(null);
   }, []);
 
   const startGame = useCallback(() => {
@@ -168,13 +182,41 @@ export default function Home() {
   }, [history]);
 
   // Continue editor: paint the selected value onto any cell (0 = erase).
+  // Editing a cell counts as checking it, so its outline goes away.
   const handleContinueClick = useCallback(
     (pos: Position) => {
       if (computing) return;
       setBoard((prev) => setCell(prev, pos.row, pos.col, paletteValue));
+      setFlagged((prev) => prev && prev.map((row, r) => row.map((f, c) => f && !(r === pos.row && c === pos.col))));
     },
     [computing, paletteValue],
   );
+
+  // A screenshot fills the editor; the user checks it before solving.
+  const handleScreenshotRead = useCallback((reading: BoardReading) => {
+    const unsure = reading.confidence.map((row, r) =>
+      row.map((c, col) => reading.board[r][col] !== 0 && c < UNSURE_READING),
+    );
+    const unsureCount = unsure.flat().filter(Boolean).length;
+    const tileCount = reading.board.flat().filter((v) => v !== 0).length;
+    // A game that already shows a tile above the cap evidently doesn't end
+    // there, so the cap would only make the solver misjudge it.
+    const top = Math.max(...reading.board.flat());
+    const liftCap = maxTile !== null && top > maxTile;
+    if (liftCap) setMaxTile(null);
+    const capNote = liftCap ? ` Your game already has ${top}, so the tile limit is now off.` : '';
+    setBoard(reading.board);
+    setFlagged(unsureCount > 0 ? unsure : null);
+    setImportNote(
+      unsureCount > 0
+        ? { warn: true, text: `Read ${tileCount} tiles. Check the ${unsureCount} outlined, fix any that are wrong, then solve.${capNote}` }
+        : { warn: false, text: `Read ${tileCount} tiles. Check they match your game, then solve.${capNote}` },
+    );
+  }, [maxTile]);
+
+  const handleScreenshotError = useCallback((message: string) => {
+    setImportNote({ warn: true, text: message });
+  }, []);
 
   const handleContinueSolve = useCallback(() => {
     void solve(board, maxTile);
@@ -265,7 +307,8 @@ export default function Home() {
             By default the solver stops at <strong>1024</strong>, since this game ends the moment a
             2048 appears — change that under <strong>Advanced settings</strong>.
             <br />
-            Already mid-game? Use <strong>Continue Game</strong> to recreate your current board.
+            Already mid-game? Use <strong>Continue Game</strong> to recreate your current board, or
+            import a screenshot of it.
           </p>
           <LandingInfo />
         </div>
@@ -286,11 +329,27 @@ export default function Home() {
       {phase === 'continue' && (
         <div className="stage">
           <p className="instruction">
-            Recreate your current game: pick a value, then tap cells to fill in your board. Tap a
-            filled cell to change it, or choose <strong>Erase</strong> to clear one.
+            Recreate your current game: import a screenshot of it, or pick a value and tap cells to
+            fill in your board. Tap a filled cell to change it, or choose <strong>Erase</strong> to
+            clear one.
           </p>
+          <ScreenshotImport
+            onRead={handleScreenshotRead}
+            onError={handleScreenshotError}
+            disabled={computing}
+          />
+          {importNote && (
+            <p className={`import-note${importNote.warn ? ' import-note--warn' : ''}`} role="status">
+              {importNote.text}
+            </p>
+          )}
           <TilePalette value={paletteValue} onChange={setPaletteValue} />
-          <Board board={board} onCellClick={handleContinueClick} allowOverwrite />
+          <Board
+            board={board}
+            onCellClick={handleContinueClick}
+            allowOverwrite
+            flagged={flagged ?? undefined}
+          />
           <button
             type="button"
             className="btn btn--primary"
