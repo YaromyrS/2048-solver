@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { AvoidToggle } from '@/components/AvoidToggle';
+import { AdvancedSettings } from '@/components/AdvancedSettings';
 import { Board } from '@/components/Board';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { DirectionArrow } from '@/components/DirectionArrow';
@@ -61,9 +61,10 @@ export default function Home() {
   const [computing, setComputing] = useState(false);
   const [pending, setPending] = useState<PendingConfirm | null>(null);
   const [history, setHistory] = useState<ProposalSnapshot[]>([]);
-  // Strategy preference: this game ends at 2048, so by default the solver caps
-  // play at 1024. Persists across restarts (it's a preference, not board state).
-  const [avoid2048, setAvoid2048] = useState(true);
+  // Strategy preference: the largest tile the solver may form (null = no limit).
+  // This game ends at 2048, so the default caps play at 1024. Persists across
+  // restarts (it's a preference, not board state).
+  const [maxTile, setMaxTile] = useState<number | null>(1024);
 
   const resetState = useCallback(() => {
     setBoard(emptyBoard());
@@ -94,10 +95,10 @@ export default function Home() {
   // Compute the best move for `target`, then show it — or end the game if the
   // board is terminal. The search runs in a Web Worker; the short yield keeps
   // the "Calculating…" state painting even on the sync (fallback) path.
-  const solve = useCallback(async (target: BoardType, avoid: boolean) => {
+  const solve = useCallback(async (target: BoardType, cap: number | null) => {
     setComputing(true);
     await new Promise<void>((resolve) => setTimeout(resolve, 0));
-    const result = await computeBestMove(target, { avoid2048: avoid });
+    const result = await computeBestMove(target, { maxTile: cap });
     setComputing(false);
 
     setBoard(target);
@@ -121,9 +122,9 @@ export default function Home() {
       const count = setupCount + 1;
       setBoard(next);
       setSetupCount(count);
-      if (count >= SETUP_TILES) void solve(next, avoid2048);
+      if (count >= SETUP_TILES) void solve(next, maxTile);
     },
-    [board, computing, setupCount, solve, avoid2048],
+    [board, computing, setupCount, solve, maxTile],
   );
 
   // Proposal: the user places the tile their real game spawned directly onto the
@@ -134,9 +135,9 @@ export default function Home() {
       if (computing || !afterBoard || !suggestion) return;
       setHistory((h) => [...h, { board, suggestion, afterBoard }]);
       const next = placeTile(afterBoard, pos.row, pos.col, value);
-      void solve(next, avoid2048);
+      void solve(next, maxTile);
     },
-    [board, afterBoard, suggestion, computing, solve, avoid2048],
+    [board, afterBoard, suggestion, computing, solve, maxTile],
   );
 
   // Left-click drops the selected value; right-click drops the alternate (2↔4),
@@ -174,14 +175,14 @@ export default function Home() {
   );
 
   const handleContinueSolve = useCallback(() => {
-    void solve(board, avoid2048);
-  }, [board, solve, avoid2048]);
+    void solve(board, maxTile);
+  }, [board, solve, maxTile]);
 
-  // Flipping the strategy re-evaluates the current proposal right away so the
+  // Changing the cap re-evaluates the current proposal right away so the
   // suggestion always matches the active setting.
-  const handleToggleAvoid = useCallback(
-    (value: boolean) => {
-      setAvoid2048(value);
+  const handleMaxTileChange = useCallback(
+    (value: number | null) => {
+      setMaxTile(value);
       if (phase === 'proposal') void solve(board, value);
     },
     [phase, board, solve],
@@ -220,7 +221,14 @@ export default function Home() {
     <main className="app">
       {phase !== 'landing' && (
         <header className="topbar">
-          <span className="topbar__title">2048 Solver</span>
+          <button
+            type="button"
+            className="topbar__title"
+            onClick={handleMenu}
+            title="Back to the start screen"
+          >
+            2048 Solver
+          </button>
           <div className="topbar__actions">
             {canUndo && <UndoButton onClick={handleUndo} />}
             <MenuButton onClick={handleMenu} />
@@ -231,7 +239,7 @@ export default function Home() {
 
       {phase !== 'landing' && (
         <div className="settings-bar">
-          <AvoidToggle checked={avoid2048} onChange={handleToggleAvoid} />
+          <AdvancedSettings maxTile={maxTile} onMaxTileChange={handleMaxTileChange} />
         </div>
       )}
 
@@ -250,12 +258,12 @@ export default function Home() {
               Continue Game
             </button>
           </div>
-          <div className="landing__toggle">
-            <AvoidToggle checked={avoid2048} onChange={handleToggleAvoid} />
+          <div className="landing__settings">
+            <AdvancedSettings maxTile={maxTile} onMaxTileChange={handleMaxTileChange} />
           </div>
           <p className="landing__hint">
-            <strong>Avoid making 2048</strong> caps play at 1024, since this game ends the moment a
-            2048 appears. Turn it off to play all-out for the highest tile.
+            By default the solver stops at <strong>1024</strong>, since this game ends the moment a
+            2048 appears — change that under <strong>Advanced settings</strong>.
             <br />
             Already mid-game? Use <strong>Continue Game</strong> to recreate your current board.
           </p>
@@ -322,9 +330,9 @@ export default function Home() {
             <span className="addtile__label">New tile value</span>
             <NumberSelector value={newTileValue} onChange={setNewTileValue} />
           </div>
-          {avoid2048 && afterBoard.some((row) => row.some((v) => v >= 2048)) && (
+          {maxTile !== null && afterBoard.some((row) => row.some((v) => v > maxTile)) && (
             <p className="hint hint--warn">
-              No move avoids 2048 anymore — this one forms it and ends the game.
+              No move avoids {maxTile * 2} anymore — this one forms it and ends the game.
             </p>
           )}
           <p className="hint">
