@@ -22,7 +22,7 @@ import {
   type Board as BoardType,
   type Position,
 } from '@/lib/game/board';
-import { computeBestMove } from '@/lib/solver/client';
+import { computeBestMove, prepareSolver } from '@/lib/solver/client';
 import { type MoveSuggestion } from '@/lib/solver/expectimax';
 import { BUG_REPORT_URL, REPO_URL, SITE_NAME, TAGLINE } from '@/lib/site';
 
@@ -80,11 +80,13 @@ export default function Home() {
   }, []);
 
   const startGame = useCallback(() => {
+    prepareSolver();
     resetState();
     setPhase('setup');
   }, [resetState]);
 
   const startContinue = useCallback(() => {
+    prepareSolver();
     resetState();
     setPhase('continue');
   }, [resetState]);
