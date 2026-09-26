@@ -5,6 +5,7 @@
  */
 
 import type { Board } from '@/lib/game/board';
+import { getTables } from './bitboard';
 import { bestMove, type MoveSuggestion, type SolveOptions } from './expectimax';
 
 export interface SolveRequest {
@@ -29,3 +30,7 @@ workerScope.onmessage = (e: MessageEvent<SolveRequest>) => {
   const { id, board, options } = e.data;
   workerScope.postMessage({ id, result: bestMove(board, options) });
 };
+
+// Build the search tables as soon as the worker starts (see prepareSolver);
+// requests that arrive meanwhile simply queue.
+getTables();
