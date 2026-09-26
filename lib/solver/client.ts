@@ -51,6 +51,14 @@ function getWorker(): Worker | null {
   return worker;
 }
 
+/**
+ * Start the worker ahead of the first request, so its one-off table build
+ * happens while the user is still entering tiles.
+ */
+export function prepareSolver(): void {
+  getWorker();
+}
+
 /** Suggest the best swipe for `board`, or `null` when the position is terminal. */
 export function computeBestMove(
   board: Board,
