@@ -31,7 +31,8 @@ function rank(value: number): number {
 // into one number. Powers-of-two tiles up to 2^19 keep every rank < 20.
 const lineCache = new Map<number, number>();
 
-function lineScore(r0: number, r1: number, r2: number, r3: number): number {
+/** Score of one row or column, given its four ranks in order. */
+export function lineScore(r0: number, r1: number, r2: number, r3: number): number {
   const key = ((r0 * 20 + r1) * 20 + r2) * 20 + r3;
   const cached = lineCache.get(key);
   if (cached !== undefined) return cached;

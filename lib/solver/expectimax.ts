@@ -13,6 +13,12 @@
  * ways so a single suggestion always returns quickly (AC6): a depth limit that
  * adapts to board complexity, a cumulative-probability cutoff that abandons
  * vanishingly-unlikely branches, and a hard node budget as a backstop.
+ *
+ * Two implementations search the same tree with the same parameters
+ * (searchConfig.ts): the packed-row one in bitboard.ts, used for every board
+ * it can hold, and the plain-array one below, kept for boards near 65536
+ * (which don't fit 4-bit ranks) and as the reference the bitboard is tested
+ * against.
  */
 
 import {
@@ -25,7 +31,16 @@ import {
   type Board,
   type Direction,
 } from '@/lib/game/board';
+import { bitboardBestMove, canUseBitboard } from '@/lib/solver/bitboard';
 import { heuristicScore } from '@/lib/solver/heuristics';
+import {
+  adaptiveDepth,
+  ENDING_TILE_PENALTY,
+  GAME_OVER_SCORE,
+  NODE_BUDGET,
+  PROB_THRESHOLD,
+  SPAWNS,
+} from '@/lib/solver/searchConfig';
 
 export interface MoveSuggestion {
   direction: Direction;
@@ -44,36 +59,6 @@ export interface SolveOptions {
   maxTile?: number | null;
 }
 
-/** Abandon a branch once the chance of actually reaching it drops below this. */
-const PROB_THRESHOLD = 0.001;
-
-/** Backstop so pathological positions can never hang the UI. */
-const NODE_BUDGET = 200_000;
-
-/** Possible spawns after a swipe: value and its probability. */
-const SPAWNS: ReadonlyArray<readonly [value: number, prob: number]> = [
-  [2, 0.9],
-  [4, 0.1],
-];
-
-/**
- * Value for a board that has already passed the tile cap: far below any real
- * position's heuristic (which runs in the millions), so the search always
- * prefers any within-cap continuation over it.
- */
-const ENDING_TILE_PENALTY = -1e9;
-
-/**
- * Score for a board with no legal move — i.e. game over. Every survivable leaf
- * scores in the millions (the {@link heuristicScore} baseline; see
- * SCORE_LOST_PENALTY in heuristics.ts), so scoring a dead board 0 — as nneonneo
- * does — makes reaching game over a decisive loss the search steers away from
- * whenever any surviving move exists. Scoring it with the static heuristic
- * instead (which still carries that positive baseline) let a tidy dead board
- * outscore a messy but *alive* one, so the solver could walk into a certain loss.
- */
-const GAME_OVER_SCORE = 0;
-
 /** True if any cell exceeds the tile cap — i.e. holds a game-ending tile. */
 function exceedsCap(board: Board, maxTile: number): boolean {
   for (const row of board) {
@@ -89,21 +74,6 @@ interface SearchContext {
   nodes: number;
   /** Largest allowed tile; `Infinity` when no cap is set. */
   maxTile: number;
-}
-
-/**
- * Look further ahead when the board is more developed (more distinct tile
- * values) and stay shallow early on, where branching is wide but shallow search
- * already plays well. Clamped to keep the worst case fast.
- */
-function adaptiveDepth(board: Board): number {
-  const seen = new Set<number>();
-  for (const row of board) {
-    for (const v of row) {
-      if (v !== 0) seen.add(v);
-    }
-  }
-  return Math.min(5, Math.max(3, seen.size - 2));
 }
 
 /** Compact key for the transposition cache: one char per cell rank. */
@@ -169,6 +139,15 @@ function maxValue(board: Board, cumProb: number, depth: number, ctx: SearchConte
  * worker-backed async entry point in client.ts instead.
  */
 export function bestMove(board: Board, options: SolveOptions = {}): MoveSuggestion | null {
+  const maxTile = options.maxTile ?? Infinity;
+  return canUseBitboard(board) ? bitboardBestMove(board, maxTile) : arrayBestMove(board, options);
+}
+
+/**
+ * The same search on plain arrays: slower, but holds any tile. Used for boards
+ * the bitboard can't (tile sum near 65536) and as its reference in tests.
+ */
+export function arrayBestMove(board: Board, options: SolveOptions = {}): MoveSuggestion | null {
   const maxTile = options.maxTile ?? Infinity;
   const legal = legalMoves(board);
   if (legal.length === 0) return null;
