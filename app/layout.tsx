@@ -33,6 +33,27 @@ export const metadata: Metadata = {
   },
 };
 
+// schema.org data for search engines. WebSite.name is what Google shows as the
+// site name in results (instead of "vercel.app"); WebApplication says it's a
+// free, in-browser game tool.
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    { '@type': 'WebSite', name: SITE_NAME, url: SITE_URL },
+    {
+      '@type': 'WebApplication',
+      name: SITE_NAME,
+      url: SITE_URL,
+      description: DESCRIPTION,
+      applicationCategory: 'GameApplication',
+      operatingSystem: 'Any',
+      browserRequirements: 'Requires JavaScript',
+      isAccessibleForFree: true,
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+    },
+  ],
+};
+
 export const viewport: Viewport = {
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#faf8ef' },
@@ -44,6 +65,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={rubik.variable}>
       <body>
+        <script
+          type="application/ld+json"
+          // Escaping "<" keeps the JSON from closing the script tag early.
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
+        />
         {children}
         <Analytics />
       </body>
