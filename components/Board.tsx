@@ -20,6 +20,8 @@ interface BoardProps {
    * where any cell can be overwritten or erased.
    */
   allowOverwrite?: boolean;
+  /** Cells to mark for a second look, e.g. tiles a screenshot was read with low confidence. */
+  flagged?: readonly (readonly boolean[])[];
 }
 
 /** CSS class carrying the classic-2048 colour for a tile value. */
@@ -63,6 +65,7 @@ export function Board({
   onCellClick,
   onCellAltClick,
   allowOverwrite = false,
+  flagged,
 }: BoardProps) {
   const style = variant === 'small' ? SMALL_SIZING : undefined;
   const press = useRef<PressState>({ timer: null, firedPos: null, lastPointerType: 'mouse' });
@@ -134,6 +137,8 @@ export function Board({
           const classes = ['cell'];
           if (value !== 0) classes.push('tile', tileClass(value));
           if (clickable) classes.push('cell--clickable');
+          const isFlagged = flagged?.[r]?.[c] === true;
+          if (isFlagged) classes.push('cell--flagged');
 
           return (
             <div
@@ -151,7 +156,7 @@ export function Board({
               tabIndex={clickable ? 0 : undefined}
               aria-label={
                 clickable
-                  ? `${value === 0 ? 'Place tile at' : 'Change tile at'} row ${r + 1}, column ${c + 1}`
+                  ? `${value === 0 ? 'Place tile at' : 'Change tile at'} row ${r + 1}, column ${c + 1}${isFlagged ? ' (please check)' : ''}`
                   : undefined
               }
             >

@@ -484,6 +484,52 @@ body {
   outline-offset: 2px;
 }
 
+/* ---- screenshot import (Continue Game) ---- */
+.import {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 12px;
+}
+
+.import__btn {
+  padding: 10px 18px;
+  font-size: 16px;
+}
+
+.import__hint {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* no clipboard shortcut to suggest on touch-only devices */
+@media (hover: none) {
+  .import__hint {
+    display: none;
+  }
+}
+
+.import-note {
+  margin: 0;
+  max-width: 420px;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.import-note--warn {
+  color: var(--warn);
+  font-weight: 700;
+}
+
+/* a tile read from a screenshot with low confidence: ask for a second look */
+.cell--flagged {
+  outline: 3px dashed var(--warn);
+  outline-offset: 2px;
+}
+
 /* classic 2048 tile palette */
 .tile-2 { background: #eee4da; color: #776e65; }
 .tile-4 { background: #ede0c8; color: #776e65; }
