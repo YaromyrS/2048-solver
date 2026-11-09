@@ -16,7 +16,8 @@ export const REPO_URL = 'https://github.com/YaromyrS/2048-solver';
 /** Opens GitHub's bug-report form (.github/ISSUE_TEMPLATE/bug_report.yml). */
 export const BUG_REPORT_URL = `${REPO_URL}/issues/new?template=bug_report.yml`;
 
-export const TAGLINE = 'Tell it your board and the AI works out the best swipe — move after move.';
+export const TAGLINE =
+  'Enter your board — AI looks several moves ahead and finds you the best swipe.';
 
 export const DESCRIPTION =
   'Free 2048 AI that tells you the best swipe for the game you’re playing. Enter your board once, then just tap in each new tile. Runs in your browser.';

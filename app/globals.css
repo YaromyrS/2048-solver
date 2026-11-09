@@ -383,6 +383,8 @@ body {
   margin: 0 0 12px;
   max-width: 420px;
   line-height: 1.5;
+  /* Even line lengths, so the last word doesn't wrap alone on phones. */
+  text-wrap: balance;
 }
 
 .landing__actions {
@@ -408,6 +410,8 @@ body {
   padding-top: 26px;
   border-top: 2px solid var(--accent-soft);
   text-align: left;
+  /* No single word stranded on the last line of a step or answer. */
+  text-wrap: pretty;
 }
 
 .info__heading {

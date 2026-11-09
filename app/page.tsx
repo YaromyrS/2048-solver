@@ -306,8 +306,8 @@ export default function Home() {
             <AdvancedSettings maxTile={maxTile} onMaxTileChange={handleMaxTileChange} />
           </div>
           <p className="landing__hint">
-            By default the solver stops at <strong>1024</strong>, since this game ends the moment a
-            2048 appears — change that under <strong>Advanced settings</strong>.
+            By default AI plays up to <strong>1024</strong> and avoids making a 2048, which ends the
+            game in many versions. Change this in <strong>Advanced settings</strong>.
             <br />
             Already mid-game? Use <strong>Continue Game</strong> to recreate your current board, or
             import a screenshot of it.
