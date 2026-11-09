@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { useEffect, useId, useRef } from 'react';
 
 /** Cap choices offered in the picker (largest tile the solver may form). */
 const MAX_TILE_CHOICES = [512, 1024, 2048, 4096, 8192];
@@ -7,6 +7,11 @@ interface AdvancedSettingsProps {
   /** Largest tile the solver may form; `null` means no limit. */
   maxTile: number | null;
   onMaxTileChange: (value: number | null) => void;
+  /**
+   * Open as a dropdown over the content below (game screen) instead of
+   * expanding in place; it then closes on an outside tap or Escape.
+   */
+  popover?: boolean;
 }
 
 /**
@@ -16,10 +21,29 @@ interface AdvancedSettingsProps {
  * ends. The solver plays up to the cap and only forms the next tile (which
  * ends the game) when every legal move does.
  */
-export function AdvancedSettings({ maxTile, onMaxTileChange }: AdvancedSettingsProps) {
+export function AdvancedSettings({ maxTile, onMaxTileChange, popover }: AdvancedSettingsProps) {
   const selectId = useId();
+  const detailsRef = useRef<HTMLDetailsElement>(null);
+
+  useEffect(() => {
+    const details = detailsRef.current;
+    if (!popover || !details) return;
+    const onPointerDown = (e: PointerEvent) => {
+      if (details.open && !details.contains(e.target as Node)) details.open = false;
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (details.open && e.key === 'Escape') details.open = false;
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [popover]);
+
   return (
-    <details className="advanced">
+    <details ref={detailsRef} className={popover ? 'advanced advanced--popover' : 'advanced'}>
       <summary className="advanced__summary">Advanced settings</summary>
       <div className="advanced__body">
         <label className="advanced__label" htmlFor={selectId}>
