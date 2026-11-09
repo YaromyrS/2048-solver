@@ -239,6 +239,25 @@ body {
   text-align: left;
 }
 
+/* Game screen: the panel drops down under the toggle, over the boards, so
+   opening it neither moves the toggle nor pushes the game down. */
+.advanced--popover {
+  position: relative;
+}
+
+.advanced--popover .advanced__body {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 10;
+  width: 300px;
+  max-width: calc(100vw - 32px);
+  /* Same tint as the inline panel, made opaque so the boards don't show through. */
+  background: linear-gradient(var(--accent-soft), var(--accent-soft)), var(--surface);
+  border: 1px solid var(--track);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
 .advanced__label {
   font-size: 13px;
   font-weight: 700;

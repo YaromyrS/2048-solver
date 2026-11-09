@@ -285,7 +285,7 @@ export default function Home() {
 
       {phase !== 'landing' && (
         <div className="settings-bar">
-          <AdvancedSettings maxTile={maxTile} onMaxTileChange={handleMaxTileChange} />
+          <AdvancedSettings maxTile={maxTile} onMaxTileChange={handleMaxTileChange} popover />
         </div>
       )}
 
