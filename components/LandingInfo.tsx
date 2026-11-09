@@ -17,11 +17,10 @@ export function LandingInfo() {
           Use <strong>Continue Game</strong> to copy your board.
         </li>
         <li>
-          <strong>Swipe the way the AI says</strong> in your real game.
+          <strong>Swipe the way AI says</strong> in your real game.
         </li>
         <li>
-          <strong>Tap where the new tile appeared.</strong> The AI has already made the move on its
-          copy of your board, so one tap per move is all it needs.
+          <strong>Tap where the new tile appeared.</strong> One tap per move — AI tracks the rest.
         </li>
       </ol>
 
@@ -51,7 +50,7 @@ export function LandingInfo() {
       </p>
       <h3 className="info__question">Is it free? Is my board sent anywhere?</h3>
       <p className="info__answer">
-        It’s free, with no sign-up and no ads. The AI runs entirely in your browser, so your board
+        It’s free, with no sign-up and no ads. AI runs entirely in your browser, so your board
         never leaves your device. Screenshots are read on your device too, never uploaded.
       </p>
     </section>

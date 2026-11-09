@@ -13,7 +13,7 @@ body:
     id: board
     attributes:
       label: Board or screenshot
-      description: If the AI suggested a bad move, paste a screenshot or type the board row by row (use 0 for empty cells).
+      description: If AI suggested a bad move, paste a screenshot or type the board row by row (use 0 for empty cells).
       placeholder: |
         128 64 32 8
         16  32 8  4

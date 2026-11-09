@@ -11,7 +11,7 @@ next move. That's one tap per move, not re-entering the whole board every time.
 
 ## How it works
 
-- **Expectimax search.** For each possible swipe, the AI looks several moves
+- **Expectimax search.** For each possible swipe, AI looks several moves
   ahead and averages over where the next tile can spawn (a 2 with 90% chance, a
   4 with 10%).
 - **nneonneo's heuristic.** Positions are scored with a TypeScript port of the
@@ -25,7 +25,7 @@ next move. That's one tap per move, not re-entering the whole board every time.
   board never leaves your device. The site counts page views with Vercel Web
   Analytics, which doesn't use cookies.
 
-By default the AI plays to 1024 and avoids making 2048, because many versions
+By default AI plays to 1024 and avoids making 2048, because many versions
 end the game when a 2048 appears. You can raise or remove that limit under
 **Advanced settings**.
 
@@ -54,7 +54,7 @@ pull requests.
 ## Found a bug?
 
 [Open a bug report](https://github.com/YaromyrS/2048-solver/issues/new?template=bug_report.yml).
-If the AI suggested a bad move, include the board so it can be reproduced.
+If AI suggested a bad move, include the board so it can be reproduced.
 
 ## Credits
 
