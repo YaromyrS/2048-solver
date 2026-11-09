@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Board } from '@/components/Board';
+import { PauseIcon, PlayIcon } from '@/components/icons';
 import type { Board as BoardType, Direction } from '@/lib/game/board';
 
 interface DemoFrame {
@@ -30,26 +31,48 @@ const FRAMES: DemoFrame[] = [
 
 const FRAME_MS = 2800;
 
-/** Decorative auto-playing board for the landing hero. */
+/**
+ * Auto-playing board for the landing hero, framed and labelled "Demo" so it
+ * isn't mistaken for the real board. The pause button stops it (WCAG 2.2.2);
+ * with reduced motion it starts paused.
+ */
 export function LandingDemo() {
   const [frame, setFrame] = useState(0);
+  const [paused, setPaused] = useState(false);
 
   useEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const timer = setInterval(() => setFrame((f) => (f + 1) % FRAMES.length), FRAME_MS);
-    return () => clearInterval(timer);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) setPaused(true);
   }, []);
 
+  useEffect(() => {
+    if (paused) return;
+    const timer = setInterval(() => setFrame((f) => (f + 1) % FRAMES.length), FRAME_MS);
+    return () => clearInterval(timer);
+  }, [paused]);
+
   const { board, direction } = FRAMES[frame];
+  const toggleLabel = paused ? 'Play demo' : 'Pause demo';
 
   return (
-    <div className="demo" aria-hidden="true">
-      <span className="demo__badge">
-        <span className="demo__glyph">{GLYPH[direction]}</span> swipe {direction}
-      </span>
-      {/* key remounts the board each frame so the tick animation replays */}
-      <div className="demo__board" key={frame}>
-        <Board board={board} variant="small" />
+    <div className="demo">
+      <span className="demo__label">Demo</span>
+      <button
+        type="button"
+        className="demo__pause"
+        onClick={() => setPaused((p) => !p)}
+        aria-label={toggleLabel}
+        title={toggleLabel}
+      >
+        {paused ? <PlayIcon /> : <PauseIcon />}
+      </button>
+      <div className="demo__content" aria-hidden="true">
+        <span className="demo__badge">
+          <span className="demo__glyph">{GLYPH[direction]}</span> swipe {direction}
+        </span>
+        {/* key remounts the board each frame so the tick animation replays */}
+        <div className="demo__board" key={frame}>
+          <Board board={board} variant="small" />
+        </div>
       </div>
     </div>
   );

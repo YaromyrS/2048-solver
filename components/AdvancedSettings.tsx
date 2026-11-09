@@ -44,7 +44,9 @@ export function AdvancedSettings({ maxTile, onMaxTileChange, popover }: Advanced
 
   return (
     <details ref={detailsRef} className={popover ? 'advanced advanced--popover' : 'advanced'}>
-      <summary className="advanced__summary">Advanced settings</summary>
+      <summary className="advanced__summary" title="Set the highest tile AI may make">
+        Advanced settings
+      </summary>
       <div className="advanced__body">
         <label className="advanced__label" htmlFor={selectId}>
           Maximum number before game end

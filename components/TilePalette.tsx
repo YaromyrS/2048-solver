@@ -18,6 +18,7 @@ export function TilePalette({ value, onChange }: TilePaletteProps) {
         aria-checked={value === 0}
         className={'palette-tile palette-erase' + (value === 0 ? ' palette-tile--active' : '')}
         onClick={() => onChange(0)}
+        title="Tap tiles on the board to clear them"
       >
         Erase
       </button>
@@ -29,6 +30,7 @@ export function TilePalette({ value, onChange }: TilePaletteProps) {
           aria-checked={value === n}
           className={`palette-tile tile tile-${n}` + (value === n ? ' palette-tile--active' : '')}
           onClick={() => onChange(n)}
+          title={`Tap cells on the board to place ${n}`}
         >
           {n}
         </button>

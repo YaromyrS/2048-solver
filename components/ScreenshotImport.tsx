@@ -67,6 +67,7 @@ export function ScreenshotImport({ onRead, onError, disabled = false }: Screensh
         className="btn btn--ghost import__btn"
         onClick={() => inputRef.current?.click()}
         disabled={disabled || busy}
+        title="Fill the board from a screenshot of your game. It is read on this device, never uploaded."
       >
         {busy ? 'Reading screenshot…' : 'Import screenshot'}
       </button>
