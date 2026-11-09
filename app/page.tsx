@@ -25,7 +25,7 @@ import {
 } from '@/lib/game/board';
 import { computeBestMove, prepareSolver } from '@/lib/solver/client';
 import { type MoveSuggestion } from '@/lib/solver/expectimax';
-import { BUG_REPORT_URL, REPO_URL, SITE_NAME, TAGLINE } from '@/lib/site';
+import { BUG_REPORT_URL, DONATE_URL, REPO_URL, SITE_NAME, TAGLINE } from '@/lib/site';
 import type { BoardReading } from '@/lib/vision/readBoard';
 
 type Phase = 'landing' | 'setup' | 'continue' | 'proposal' | 'gameover';
@@ -471,6 +471,14 @@ export default function Home() {
         </p>
         {/* New tab, so following a link mid-game never loses the board. */}
         <nav className="footer__links" aria-label="Project links">
+          <a
+            href={DONATE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Donate any amount via monobank"
+          >
+            Support this project
+          </a>
           <a href={BUG_REPORT_URL} target="_blank" rel="noopener noreferrer">
             Report a bug
           </a>

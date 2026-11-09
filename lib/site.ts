@@ -16,6 +16,12 @@ export const REPO_URL = 'https://github.com/YaromyrS/2048-solver';
 /** Opens GitHub's bug-report form (.github/ISSUE_TEMPLATE/bug_report.yml). */
 export const BUG_REPORT_URL = `${REPO_URL}/issues/new?template=bug_report.yml`;
 
+/**
+ * Donations: a monobank jar. Stripe- and PayPal-based tip sites (Ko-fi, Buy Me a
+ * Coffee) can't pay out to Ukraine.
+ */
+export const DONATE_URL = 'https://send.monobank.ua/jar/6BdkNMdYJJ';
+
 export const TAGLINE =
   'Enter your board — AI looks several moves ahead and finds you the best swipe.';
 
