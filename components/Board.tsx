@@ -22,6 +22,20 @@ interface BoardProps {
   allowOverwrite?: boolean;
   /** Cells to mark for a second look, e.g. tiles a screenshot was read with low confidence. */
   flagged?: readonly (readonly boolean[])[];
+  /**
+   * Accessible name, e.g. "Board after the move". A board with no clickable
+   * cells is exposed as one image whose name lists every row's tiles.
+   */
+  label?: string;
+  /** Tooltip on clickable cells saying what a tap does, e.g. "Place 8 here". */
+  cellHint?: string;
+}
+
+/** "row 1: 2, empty, empty, 4; row 2: …" — the board as screen-reader text. */
+function describeBoard(board: BoardType): string {
+  return board
+    .map((row, r) => `row ${r + 1}: ${row.map((v) => (v === 0 ? 'empty' : v)).join(', ')}`)
+    .join('; ');
 }
 
 /** CSS class carrying the classic-2048 colour for a tile value. */
@@ -66,6 +80,8 @@ export function Board({
   onCellAltClick,
   allowOverwrite = false,
   flagged,
+  label,
+  cellHint,
 }: BoardProps) {
   const style = variant === 'small' ? SMALL_SIZING : undefined;
   const press = useRef<PressState>({ timer: null, firedPos: null, lastPointerType: 'mouse' });
@@ -79,8 +95,15 @@ export function Board({
 
   useEffect(() => cancelLongPress, []);
 
+  const interactive = onCellClick !== undefined;
+  const a11y = interactive
+    ? { role: 'group', 'aria-label': label }
+    : label
+      ? { role: 'img', 'aria-label': `${label}: ${describeBoard(board)}` }
+      : {};
+
   return (
-    <div className={`board board--${variant}`} style={style}>
+    <div className={`board board--${variant}`} style={style} {...a11y}>
       {board.map((row, r) =>
         row.map((value, c) => {
           const clickable = onCellClick !== undefined && (value === 0 || allowOverwrite);
@@ -156,9 +179,10 @@ export function Board({
               tabIndex={clickable ? 0 : undefined}
               aria-label={
                 clickable
-                  ? `${value === 0 ? 'Place tile at' : 'Change tile at'} row ${r + 1}, column ${c + 1}${isFlagged ? ' (please check)' : ''}`
+                  ? `${value === 0 ? 'Empty cell' : `Tile ${value}`} at row ${r + 1}, column ${c + 1}${isFlagged ? ' (please check)' : ''}`
                   : undefined
               }
+              title={clickable ? cellHint : undefined}
             >
               {value !== 0 ? value : ''}
             </div>

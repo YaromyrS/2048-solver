@@ -1,3 +1,5 @@
+import { UndoIcon } from '@/components/icons';
+
 export function UndoButton({ onClick }: { onClick: () => void }) {
   return (
     <button
@@ -7,7 +9,7 @@ export function UndoButton({ onClick }: { onClick: () => void }) {
       aria-label="Undo last move"
       title="Undo last move"
     >
-      ↶
+      <UndoIcon />
     </button>
   );
 }

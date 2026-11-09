@@ -14,12 +14,11 @@ const LABEL: Record<Direction, string> = {
   right: 'Right',
 };
 
+/** Visual only: the instruction above already says which way to swipe. */
 export function DirectionArrow({ direction }: { direction: Direction }) {
   return (
-    <div className="direction" aria-label={`Swipe ${LABEL[direction]}`}>
-      <span className="direction__glyph" aria-hidden="true">
-        {GLYPH[direction]}
-      </span>
+    <div className="direction" aria-hidden="true">
+      <span className="direction__glyph">{GLYPH[direction]}</span>
       <span className="direction__label">{LABEL[direction]}</span>
     </div>
   );

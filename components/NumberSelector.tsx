@@ -20,6 +20,7 @@ export function NumberSelector({ value, onChange }: NumberSelectorProps) {
             `selector-tile tile tile-${n}` + (value === n ? ' selector-tile--active' : '')
           }
           onClick={() => onChange(n)}
+          title={`The new tile is a ${n}`}
         >
           {n}
         </button>

@@ -263,18 +263,33 @@ export default function Home() {
   );
   const handleMenu = useCallback(() => guardLeave(goToLanding, 'Leave'), [guardLeave, goToLanding]);
 
+  // Read out by screen readers whenever it changes (the visible text is not a live region).
+  const announcement = computing
+    ? 'Calculating best move…'
+    : phase === 'proposal' && suggestion
+      ? `Best move: swipe ${DIRECTION_WORD[suggestion.direction]}.`
+      : phase === 'gameover'
+        ? 'You’re out of moves.'
+        : '';
+
   return (
     <main className="app">
+      <p className="sr-only" role="status">
+        {announcement}
+      </p>
+
       {phase !== 'landing' && (
         <header className="topbar">
-          <button
-            type="button"
-            className="topbar__title"
-            onClick={handleMenu}
-            title="Back to the start screen"
-          >
-            {SITE_NAME}
-          </button>
+          <h1 className="topbar__heading">
+            <button
+              type="button"
+              className="topbar__title"
+              onClick={handleMenu}
+              title="Back to the start screen"
+            >
+              {SITE_NAME}
+            </button>
+          </h1>
           <div className="topbar__actions">
             {canUndo && <UndoButton onClick={handleUndo} />}
             <MenuButton onClick={handleMenu} />
@@ -295,10 +310,20 @@ export default function Home() {
           <p className="landing__subtitle">{TAGLINE}</p>
           <LandingDemo />
           <div className="landing__actions">
-            <button type="button" className="btn btn--primary" onClick={startGame}>
+            <button
+              type="button"
+              className="btn btn--primary"
+              onClick={startGame}
+              title="New game: tap your first two tiles and get the best move"
+            >
               Start Solving
             </button>
-            <button type="button" className="btn btn--ghost" onClick={startContinue}>
+            <button
+              type="button"
+              className="btn btn--ghost"
+              onClick={startContinue}
+              title="Already playing? Copy your board or import a screenshot of it"
+            >
               Continue Game
             </button>
           </div>
@@ -318,12 +343,17 @@ export default function Home() {
 
       {phase === 'setup' && (
         <div className="stage">
-          <p className="instruction">
+          <p className="instruction instruction--lead">
             Place your first two tiles (both are <strong>2</strong>) — tap two empty cells.
             <br />
             {setupCount}/{SETUP_TILES} placed.
           </p>
-          <Board board={board} onCellClick={handleSetupClick} />
+          <Board
+            board={board}
+            onCellClick={handleSetupClick}
+            label="Your board"
+            cellHint="Place a 2 here"
+          />
           <p className="status">{computing ? 'Calculating best move…' : ''}</p>
         </div>
       )}
@@ -351,12 +381,15 @@ export default function Home() {
             onCellClick={handleContinueClick}
             allowOverwrite
             flagged={flagged ?? undefined}
+            label="Your board"
+            cellHint={paletteValue === 0 ? 'Clear this cell' : `Place ${paletteValue} here`}
           />
           <button
             type="button"
             className="btn btn--primary"
             onClick={handleContinueSolve}
             disabled={computing || countEmpty(board) === CELL_COUNT}
+            title="Get the best move for this board"
           >
             Solve from here
           </button>
@@ -366,41 +399,51 @@ export default function Home() {
 
       {phase === 'proposal' && suggestion && afterBoard && (
         <div className="stage">
-          <p className="instruction">
-            Best move: swipe <strong>{DIRECTION_WORD[suggestion.direction]}</strong>. Make that move,
-            then tap the <strong>highlighted</strong> board where the new tile appeared.
+          <p className="instruction instruction--lead">
+            <span className="instruction__line">
+              Best move: swipe <strong>{DIRECTION_WORD[suggestion.direction]}</strong>.
+            </span>{' '}
+            <span className="instruction__line">
+              Make that move, then tap the <strong>highlighted</strong> board where the new tile
+              appeared.
+            </span>
           </p>
-          <div className="comparison">
-            <div className="comparison__side comparison__side--muted">
-              <span className="comparison__caption">Now</span>
-              <Board board={board} variant="small" />
-            </div>
-            <DirectionArrow direction={suggestion.direction} />
-            <div className="comparison__side comparison__side--active">
-              <span className="comparison__caption comparison__caption--active">
-                Tap the new tile’s spot ↓
-              </span>
-              <Board
-                board={afterBoard}
-                variant="small"
-                onCellClick={handleAddTileClick}
-                onCellAltClick={handleAddTileAltClick}
-              />
-            </div>
-          </div>
-          <div className="addtile">
-            <span className="addtile__label">New tile value</span>
-            <NumberSelector value={newTileValue} onChange={setNewTileValue} />
-          </div>
           {maxTile !== null && afterBoard.some((row) => row.some((v) => v > maxTile)) && (
             <p className="hint hint--warn">
               No move avoids {maxTile * 2} anymore — this one forms it and ends the game.
             </p>
           )}
-          <p className="hint">
-            Tap drops <strong>{newTileValue}</strong>; long-press (or right-click) drops{' '}
-            <strong>{newTileValue === 2 ? 4 : 2}</strong>.
-          </p>
+          {/* A grid, so the tile-value picker sits right under the board it is for. */}
+          <div className="comparison">
+            <span className="comparison__caption comparison__caption--now">Now</span>
+            <div className="comparison__board comparison__board--now">
+              <Board board={board} variant="small" label="Board before the move" />
+            </div>
+            <DirectionArrow direction={suggestion.direction} />
+            <span className="comparison__caption comparison__caption--active">
+              Tap the new tile’s spot ↓
+            </span>
+            <div className="comparison__board comparison__board--active">
+              <Board
+                board={afterBoard}
+                variant="small"
+                onCellClick={handleAddTileClick}
+                onCellAltClick={handleAddTileAltClick}
+                label="Board after the move: tap where the new tile appeared"
+                cellHint={`Tap: a new ${newTileValue} here. Long-press or right-click: a ${newTileValue === 2 ? 4 : 2}`}
+              />
+            </div>
+            <div className="comparison__picker">
+              <div className="addtile">
+                <span className="addtile__label">New tile value</span>
+                <NumberSelector value={newTileValue} onChange={setNewTileValue} />
+              </div>
+              <p className="hint">
+                Tap drops <strong>{newTileValue}</strong>; long-press (or right-click) drops{' '}
+                <strong>{newTileValue === 2 ? 4 : 2}</strong>.
+              </p>
+            </div>
+          </div>
           <p className="status">{computing ? 'Calculating best move…' : ''}</p>
         </div>
       )}
@@ -409,8 +452,13 @@ export default function Home() {
         <div className="stage">
           <div className="gameover">
             <h2>You&apos;re out of moves</h2>
-            <Board board={board} variant="small" />
-            <button type="button" className="btn btn--primary" onClick={startGame}>
+            <Board board={board} variant="small" label="Final board" />
+            <button
+              type="button"
+              className="btn btn--primary"
+              onClick={startGame}
+              title="Start a new game"
+            >
               Restart
             </button>
           </div>

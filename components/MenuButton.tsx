@@ -1,3 +1,5 @@
+import { HomeIcon } from '@/components/icons';
+
 export function MenuButton({ onClick }: { onClick: () => void }) {
   return (
     <button
@@ -7,7 +9,7 @@ export function MenuButton({ onClick }: { onClick: () => void }) {
       aria-label="Back to menu"
       title="Back to menu"
     >
-      ⌂
+      <HomeIcon />
     </button>
   );
 }

@@ -1,3 +1,5 @@
+import { RestartIcon } from '@/components/icons';
+
 export function RestartButton({ onClick }: { onClick: () => void }) {
   return (
     <button
@@ -7,7 +9,7 @@ export function RestartButton({ onClick }: { onClick: () => void }) {
       aria-label="Restart game"
       title="Restart game"
     >
-      ↻
+      <RestartIcon />
     </button>
   );
 }
