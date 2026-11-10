@@ -51,6 +51,20 @@ every other branch to a preview URL. `vercel.json` runs the test suite before
 last good build. Day-to-day work happens on `dev` and reaches `main` through
 pull requests.
 
+## Search engines
+
+Two files in `public/` prove ownership of the site, so don't delete or rename
+them:
+
+- `google5b6bb9bd1ccb2c91.html` verifies the site in Google Search Console.
+- `cf8f6ad0743e566de2373f8686f74d2e.txt` is the [IndexNow](https://www.indexnow.org)
+  key. With it, Bing, Yandex and other IndexNow engines can be told about a
+  changed page straight away instead of waiting for a crawl:
+
+  ```bash
+  curl "https://api.indexnow.org/indexnow?url=https://2048-solver-ai.vercel.app/&key=cf8f6ad0743e566de2373f8686f74d2e"
+  ```
+
 ## Found a bug?
 
 [Open a bug report](https://github.com/YaromyrS/2048-solver/issues/new?template=bug_report.yml).
