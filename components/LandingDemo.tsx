@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { Board } from '@/components/Board';
+import { useMessages } from '@/components/I18nProvider';
 import { PauseIcon, PlayIcon } from '@/components/icons';
 import type { Board as BoardType, Direction } from '@/lib/game/board';
+import { format } from '@/lib/i18n/format';
 
 interface DemoFrame {
   board: BoardType;
@@ -37,6 +39,7 @@ const FRAME_MS = 2800;
  * with reduced motion it starts paused.
  */
 export function LandingDemo() {
+  const t = useMessages();
   const [frame, setFrame] = useState(0);
   const [paused, setPaused] = useState(false);
 
@@ -51,11 +54,11 @@ export function LandingDemo() {
   }, [paused]);
 
   const { board, direction } = FRAMES[frame];
-  const toggleLabel = paused ? 'Play demo' : 'Pause demo';
+  const toggleLabel = paused ? t.demo.play : t.demo.pause;
 
   return (
     <div className="demo">
-      <span className="demo__label">Demo</span>
+      <span className="demo__label">{t.demo.label}</span>
       <button
         type="button"
         className="demo__pause"
@@ -67,7 +70,8 @@ export function LandingDemo() {
       </button>
       <div className="demo__content" aria-hidden="true">
         <span className="demo__badge">
-          <span className="demo__glyph">{GLYPH[direction]}</span> swipe {direction}
+          <span className="demo__glyph">{GLYPH[direction]}</span>{' '}
+          {format(t.demo.swipe, { direction: t.directions[direction] })}
         </span>
         {/* key remounts the board each frame so the tick animation replays */}
         <div className="demo__board" key={frame}>

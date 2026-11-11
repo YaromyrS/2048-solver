@@ -990,6 +990,104 @@ body {
   color: var(--text);
 }
 
+/* ---- language switcher (footer, start screen only) ---- */
+.lang-switch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.lang-switch__summary {
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  /* at least a 24px-tall tap target (WCAG 2.5.8) */
+  padding: 4px 6px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.lang-switch__summary::-webkit-details-marker {
+  display: none;
+}
+
+.lang-switch__summary::after {
+  content: '▾';
+  transition: transform 0.15s ease;
+}
+
+.lang-switch[open] .lang-switch__summary::after {
+  transform: rotate(180deg);
+}
+
+.lang-switch__summary:hover {
+  color: var(--text);
+}
+
+.lang-switch__summary:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.lang-switch__summary .icon {
+  width: 16px;
+  height: 16px;
+}
+
+.lang-switch__list {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 10px 12px;
+  max-width: 420px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px 14px;
+  background: var(--accent-soft);
+  border-radius: 8px;
+}
+
+.lang-switch__list a {
+  display: inline-block;
+  padding: 4px 2px;
+  /* the list sits on the --accent-soft tint */
+  color: var(--accent-text);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.lang-switch__list a:hover {
+  text-decoration: underline;
+}
+
+.lang-switch__list a:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.lang-switch__list a[aria-current='page'] {
+  color: var(--text);
+  text-decoration: underline;
+}
+
+/* Rubik has no Vietnamese letters (ạ, ầ, ữ…), and mixing it with a fallback
+   font inside one word looks broken, so Vietnamese uses system fonts only. */
+body:lang(vi) {
+  font-family: "Helvetica Neue", Arial, sans-serif;
+}
+
+/* ...but the brand name and the tile numbers have no such letters, so they
+   keep Rubik and look the same in every language. */
+body:lang(vi) :is(.landing__title, .topbar__title, .board, .tile) {
+  font-family: var(--font-rubik), "Helvetica Neue", Arial, sans-serif;
+}
+
 /* ---- responsive ---- */
 
 /* Stack the Now/After comparison once side by side no longer fits:

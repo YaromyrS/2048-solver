@@ -1,58 +1,39 @@
+import { Fragment } from 'react';
+import { useMessages } from '@/components/I18nProvider';
+import { Rich } from '@/components/Rich';
+
 /**
  * "How it works" and FAQ copy under the start screen.
  *
  * Besides helping first-time visitors, this is the page's only real prose, so
- * it is what search engines read to learn what the site is — keep the phrases
- * people search for ("2048 AI", "best move", "strategy") in plain text here.
+ * it is what search engines read to learn what the site is. The text lives in
+ * the `info` messages, which keep each language's search phrases ("2048 AI",
+ * "best move", "strategy") in plain text.
  */
 export function LandingInfo() {
+  const t = useMessages();
   return (
     <section className="info" aria-labelledby="info-how">
       <h2 id="info-how" className="info__heading">
-        How it works
+        {t.info.howHeading}
       </h2>
       <ol className="info__steps">
-        <li>
-          <strong>Enter your board.</strong> New game? Tap your first two tiles. Already playing?
-          Use <strong>Continue Game</strong> to copy your board.
-        </li>
-        <li>
-          <strong>Swipe the way AI says</strong> in your real game.
-        </li>
-        <li>
-          <strong>Tap where the new tile appeared.</strong> One tap per move — AI tracks the rest.
-        </li>
+        {t.info.steps.map((step) => (
+          <li key={step}>
+            <Rich text={step} />
+          </li>
+        ))}
       </ol>
 
-      <h2 className="info__heading">Questions</h2>
-      <h3 className="info__question">What kind of AI is this?</h3>
-      <p className="info__answer">
-        A game-playing search, not a chatbot. For every possible swipe it looks several moves
-        ahead, averages over where the next 2 or 4 could appear (expectimax search), and scores
-        each position with the heuristic from nneonneo’s well-known 2048 AI.
-      </p>
-      <h3 className="info__question">What strategy does it follow?</h3>
-      <p className="info__answer">
-        The classic one: keep the biggest tile in a corner with the others lined up behind it in
-        descending order, while keeping cells free and merges ready. Watching which moves it picks
-        is a quick way to get better at 2048 yourself.
-      </p>
-      <h3 className="info__question">Will it work with my 2048 game?</h3>
-      <p className="info__answer">
-        Yes, if it’s the standard 4×4 game where each swipe adds a 2 or a 4 — the original web
-        version and most phone apps.
-      </p>
-      <h3 className="info__question">Can it read my board from a screenshot?</h3>
-      <p className="info__answer">
-        Yes. Choose <strong>Continue Game</strong>, then import a screenshot of your game (or paste
-        one). It reads the original 2048 and play2048.co, in light or dark mode. Check the board
-        before solving: any tile it wasn’t sure about is outlined.
-      </p>
-      <h3 className="info__question">Is it free? Is my board sent anywhere?</h3>
-      <p className="info__answer">
-        It’s free, with no sign-up and no ads. AI runs entirely in your browser, so your board
-        never leaves your device. Screenshots are read on your device too, never uploaded.
-      </p>
+      <h2 className="info__heading">{t.info.faqHeading}</h2>
+      {t.info.faq.map(({ q, a }) => (
+        <Fragment key={q}>
+          <h3 className="info__question">{q}</h3>
+          <p className="info__answer">
+            <Rich text={a} />
+          </p>
+        </Fragment>
+      ))}
     </section>
   );
 }

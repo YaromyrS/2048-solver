@@ -2,7 +2,10 @@
 
 import { useEffect, useRef } from 'react';
 import type { CSSProperties, KeyboardEvent, MouseEvent, PointerEvent } from 'react';
+import { useMessages } from '@/components/I18nProvider';
 import { type Board as BoardType, type Position } from '@/lib/game/board';
+import { format } from '@/lib/i18n/format';
+import type { Messages } from '@/lib/i18n/messages/en';
 
 interface BoardProps {
   board: BoardType;
@@ -32,9 +35,11 @@ interface BoardProps {
 }
 
 /** "row 1: 2, empty, empty, 4; row 2: …" — the board as screen-reader text. */
-function describeBoard(board: BoardType): string {
+function describeBoard(board: BoardType, t: Messages['board']): string {
   return board
-    .map((row, r) => `row ${r + 1}: ${row.map((v) => (v === 0 ? 'empty' : v)).join(', ')}`)
+    .map((row, r) =>
+      format(t.row, { row: r + 1, cells: row.map((v) => (v === 0 ? t.empty : v)).join(', ') }),
+    )
     .join('; ');
 }
 
@@ -83,6 +88,7 @@ export function Board({
   label,
   cellHint,
 }: BoardProps) {
+  const t = useMessages().board;
   const style = variant === 'small' ? SMALL_SIZING : undefined;
   const press = useRef<PressState>({ timer: null, firedPos: null, lastPointerType: 'mouse' });
 
@@ -99,7 +105,7 @@ export function Board({
   const a11y = interactive
     ? { role: 'group', 'aria-label': label }
     : label
-      ? { role: 'img', 'aria-label': `${label}: ${describeBoard(board)}` }
+      ? { role: 'img', 'aria-label': `${label}: ${describeBoard(board, t)}` }
       : {};
 
   return (
@@ -162,6 +168,11 @@ export function Board({
           if (clickable) classes.push('cell--clickable');
           const isFlagged = flagged?.[r]?.[c] === true;
           if (isFlagged) classes.push('cell--flagged');
+          const cellLabel = format(t.cell, {
+            what: value === 0 ? t.emptyCell : format(t.tile, { value }),
+            row: r + 1,
+            col: c + 1,
+          });
 
           return (
             <div
@@ -179,7 +190,9 @@ export function Board({
               tabIndex={clickable ? 0 : undefined}
               aria-label={
                 clickable
-                  ? `${value === 0 ? 'Empty cell' : `Tile ${value}`} at row ${r + 1}, column ${c + 1}${isFlagged ? ' (please check)' : ''}`
+                  ? isFlagged
+                    ? format(t.flagged, { label: cellLabel })
+                    : cellLabel
                   : undefined
               }
               title={clickable ? cellHint : undefined}

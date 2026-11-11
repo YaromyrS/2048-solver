@@ -1,3 +1,6 @@
+import { useMessages } from '@/components/I18nProvider';
+import { format } from '@/lib/i18n/format';
+
 /** Values a user can paint onto the board in the Continue editor. */
 export const PALETTE_VALUES = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048] as const;
 
@@ -10,17 +13,18 @@ interface TilePaletteProps {
 }
 
 export function TilePalette({ value, onChange }: TilePaletteProps) {
+  const t = useMessages();
   return (
-    <div className="tile-palette" role="radiogroup" aria-label="Tile value to place">
+    <div className="tile-palette" role="radiogroup" aria-label={t.palette.label}>
       <button
         type="button"
         role="radio"
         aria-checked={value === 0}
         className={'palette-tile palette-erase' + (value === 0 ? ' palette-tile--active' : '')}
         onClick={() => onChange(0)}
-        title="Tap tiles on the board to clear them"
+        title={t.palette.eraseTitle}
       >
-        Erase
+        {t.palette.erase}
       </button>
       {PALETTE_VALUES.map((n) => (
         <button
@@ -30,7 +34,7 @@ export function TilePalette({ value, onChange }: TilePaletteProps) {
           aria-checked={value === n}
           className={`palette-tile tile tile-${n}` + (value === n ? ' palette-tile--active' : '')}
           onClick={() => onChange(n)}
-          title={`Tap cells on the board to place ${n}`}
+          title={format(t.palette.placeTitle, { value: n })}
         >
           {n}
         </button>

@@ -1,12 +1,12 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useMessages } from '@/components/I18nProvider';
 
 interface ConfirmDialogProps {
   title: string;
   message: string;
   confirmLabel: string;
-  cancelLabel?: string;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -19,10 +19,10 @@ export function ConfirmDialog({
   title,
   message,
   confirmLabel,
-  cancelLabel = 'Cancel',
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
+  const t = useMessages();
   const modalRef = useRef<HTMLDivElement>(null);
   // Captured during the first render, before autoFocus moves focus into the
   // dialog (an effect would already see the dialog's own button).
@@ -84,9 +84,9 @@ export function ConfirmDialog({
             type="button"
             className="btn btn--ghost"
             onClick={cancel}
-            title="Keep this game"
+            title={t.leave.cancelTitle}
           >
-            {cancelLabel}
+            {t.leave.cancel}
           </button>
           <button
             type="button"

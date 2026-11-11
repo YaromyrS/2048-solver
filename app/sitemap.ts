@@ -1,7 +1,15 @@
 import type { MetadataRoute } from 'next';
-import { SITE_URL } from '@/lib/site';
+import { LOCALES, languageAlternates, localeUrl } from '@/lib/i18n/locales';
 
-// A single-page app: the start screen is the only URL worth indexing.
+// A single-page app: the start screen is the only URL worth indexing, once per
+// language. Each entry lists the other languages too, matching the pages'
+// own hreflang links.
 export default function sitemap(): MetadataRoute.Sitemap {
-  return [{ url: SITE_URL, changeFrequency: 'monthly', priority: 1 }];
+  const languages = languageAlternates();
+  return LOCALES.map((l) => ({
+    url: localeUrl(l.code),
+    changeFrequency: 'monthly',
+    priority: 1,
+    alternates: { languages },
+  }));
 }

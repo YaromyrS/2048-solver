@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useMessages } from '@/components/I18nProvider';
 import type { BoardReading } from '@/lib/vision/readBoard';
 
 /** The reader and its templates (~40 KB) load on first use, not with the page. */
@@ -19,6 +20,7 @@ interface ScreenshotImportProps {
  * image is read on the device and never uploaded.
  */
 export function ScreenshotImport({ onRead, onError, disabled = false }: ScreenshotImportProps) {
+  const t = useMessages().importShot;
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
 
@@ -31,19 +33,19 @@ export function ScreenshotImport({ onRead, onError, disabled = false }: Screensh
         ImageLoadError = loader.ImageLoadError;
         const reading = reader.readBoard(await loader.imageFromFile(file), templates.TEMPLATES);
         if (reading) onRead(reading);
-        else onError('Couldn’t find a 2048 board in that image. Use a screenshot that shows the whole board.');
+        else onError(t.noBoard);
       } catch (err) {
         if (ImageLoadError && err instanceof ImageLoadError) {
-          onError(err.message);
+          onError(t[err.code]);
         } else {
           console.error('Screenshot import failed', err);
-          onError('Something went wrong reading that image. Please try another screenshot.');
+          onError(t.failed);
         }
       } finally {
         setBusy(false);
       }
     },
-    [onRead, onError],
+    [onRead, onError, t],
   );
 
   // Ctrl/Cmd+V with a screenshot on the clipboard imports it directly.
@@ -67,9 +69,9 @@ export function ScreenshotImport({ onRead, onError, disabled = false }: Screensh
         className="btn btn--ghost import__btn"
         onClick={() => inputRef.current?.click()}
         disabled={disabled || busy}
-        title="Fill the board from a screenshot of your game. It is read on this device, never uploaded."
+        title={t.title}
       >
-        {busy ? 'Reading screenshot…' : 'Import screenshot'}
+        {busy ? t.reading : t.button}
       </button>
       <input
         ref={inputRef}
@@ -82,7 +84,7 @@ export function ScreenshotImport({ onRead, onError, disabled = false }: Screensh
           if (file) void handleImage(file);
         }}
       />
-      <span className="import__hint">or paste one with Ctrl+V</span>
+      <span className="import__hint">{t.pasteHint}</span>
     </div>
   );
 }
