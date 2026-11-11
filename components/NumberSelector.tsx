@@ -1,3 +1,6 @@
+import { useMessages } from '@/components/I18nProvider';
+import { format } from '@/lib/i18n/format';
+
 export type NewTileValue = 2 | 4;
 
 interface NumberSelectorProps {
@@ -8,8 +11,9 @@ interface NumberSelectorProps {
 const OPTIONS: NewTileValue[] = [2, 4];
 
 export function NumberSelector({ value, onChange }: NumberSelectorProps) {
+  const t = useMessages();
   return (
-    <div className="number-selector" role="radiogroup" aria-label="Value of the new tile">
+    <div className="number-selector" role="radiogroup" aria-label={t.proposal.selectorLabel}>
       {OPTIONS.map((n) => (
         <button
           key={n}
@@ -20,7 +24,7 @@ export function NumberSelector({ value, onChange }: NumberSelectorProps) {
             `selector-tile tile tile-${n}` + (value === n ? ' selector-tile--active' : '')
           }
           onClick={() => onChange(n)}
-          title={`The new tile is a ${n}`}
+          title={format(t.proposal.selectorTitle, { value: n })}
         >
           {n}
         </button>

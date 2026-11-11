@@ -1,4 +1,6 @@
 import { useEffect, useId, useRef } from 'react';
+import { useMessages } from '@/components/I18nProvider';
+import { format } from '@/lib/i18n/format';
 
 /** Cap choices offered in the picker (largest tile the solver may form). */
 const MAX_TILE_CHOICES = [512, 1024, 2048, 4096, 8192];
@@ -22,6 +24,7 @@ interface AdvancedSettingsProps {
  * ends the game) when every legal move does.
  */
 export function AdvancedSettings({ maxTile, onMaxTileChange, popover }: AdvancedSettingsProps) {
+  const t = useMessages();
   const selectId = useId();
   const detailsRef = useRef<HTMLDetailsElement>(null);
 
@@ -44,12 +47,12 @@ export function AdvancedSettings({ maxTile, onMaxTileChange, popover }: Advanced
 
   return (
     <details ref={detailsRef} className={popover ? 'advanced advanced--popover' : 'advanced'}>
-      <summary className="advanced__summary" title="Set the highest tile AI may make">
-        Advanced settings
+      <summary className="advanced__summary" title={t.advanced.summaryTitle}>
+        {t.advanced.summary}
       </summary>
       <div className="advanced__body">
         <label className="advanced__label" htmlFor={selectId}>
-          Maximum number before game end
+          {t.advanced.label}
         </label>
         <select
           id={selectId}
@@ -64,12 +67,12 @@ export function AdvancedSettings({ maxTile, onMaxTileChange, popover }: Advanced
               {v}
             </option>
           ))}
-          <option value="none">No limit</option>
+          <option value="none">{t.advanced.noLimit}</option>
         </select>
         <p className="advanced__hint">
           {maxTile === null
-            ? 'No cap — the solver plays all-out for the highest tile.'
-            : `The solver plays up to ${maxTile} and only forms ${maxTile * 2} — which ends the game — when no other move exists.`}
+            ? t.advanced.hintNoLimit
+            : format(t.advanced.hintCap, { cap: maxTile, next: maxTile * 2 })}
         </p>
       </div>
     </details>

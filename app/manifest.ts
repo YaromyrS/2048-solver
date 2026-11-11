@@ -1,11 +1,13 @@
 import type { MetadataRoute } from 'next';
-import { DESCRIPTION, SITE_NAME } from '@/lib/site';
+import en from '@/lib/i18n/messages/en';
+import { SITE_NAME } from '@/lib/site';
 
+// One manifest for every language; the installed app opens the English page.
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: SITE_NAME,
     short_name: '2048 Solver',
-    description: DESCRIPTION,
+    description: en.meta.description,
     start_url: '/',
     display: 'standalone',
     background_color: '#faf8ef',

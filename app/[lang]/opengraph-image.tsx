@@ -1,5 +1,18 @@
 import { ImageResponse } from 'next/og';
-import { SITE_NAME, TAGLINE } from '@/lib/site';
+import { LOCALES } from '@/lib/i18n/locales';
+import en from '@/lib/i18n/messages/en';
+import { SITE_NAME } from '@/lib/site';
+
+// Lives in [lang] so each page's openGraph metadata picks it up (a card in app/
+// would be dropped when the layout here sets openGraph). Every language gets
+// the same English card: the built-in font has no CJK glyphs, and the board
+// picture carries the message anyway.
+const TAGLINE = en.tagline;
+
+/** Rendered at build time, like the pages, instead of on each crawler visit. */
+export function generateStaticParams() {
+  return LOCALES.map((l) => ({ lang: l.code }));
+}
 
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';

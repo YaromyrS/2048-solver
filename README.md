@@ -29,6 +29,21 @@ By default AI plays to 1024 and avoids making 2048, because many versions
 end the game when a 2048 appears. You can raise or remove that limit under
 **Advanced settings**.
 
+## Languages
+
+The site is published in 13 languages: English at
+[`/`](https://2048-solver-ai.vercel.app), plus Spanish, French, German,
+Italian, Brazilian Portuguese, Turkish, Indonesian, Vietnamese, Ukrainian,
+Japanese, Korean and Traditional Chinese at `/es`, `/fr`, … `/zh-hant`. Each
+language is a static page with its own title and description, and every page
+lists all the others through `hreflang` links and the sitemap, so search
+engines show each searcher the version in their language.
+
+To add a language, add an entry to `LOCALES` in `lib/i18n/locales.ts` and a
+messages file next to `lib/i18n/messages/en.ts`, then register it in
+`lib/i18n/messages/index.ts`. `npm test` checks that every language has the
+same keys and `{placeholders}` as English.
+
 ## Development
 
 Requires Node.js 20 or later.

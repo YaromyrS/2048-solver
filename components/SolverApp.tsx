@@ -1,15 +1,17 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useState, type ReactNode } from 'react';
 import { AdvancedSettings } from '@/components/AdvancedSettings';
 import { Board } from '@/components/Board';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { DirectionArrow } from '@/components/DirectionArrow';
+import { useMessages } from '@/components/I18nProvider';
 import { LandingDemo } from '@/components/LandingDemo';
 import { LandingInfo } from '@/components/LandingInfo';
 import { MenuButton } from '@/components/MenuButton';
 import { NumberSelector, type NewTileValue } from '@/components/NumberSelector';
 import { RestartButton } from '@/components/RestartButton';
+import { Rich } from '@/components/Rich';
 import { ScreenshotImport } from '@/components/ScreenshotImport';
 import { TilePalette, type PaletteValue } from '@/components/TilePalette';
 import { UndoButton } from '@/components/UndoButton';
@@ -23,9 +25,10 @@ import {
   type Board as BoardType,
   type Position,
 } from '@/lib/game/board';
+import { format } from '@/lib/i18n/format';
 import { computeBestMove, prepareSolver } from '@/lib/solver/client';
 import { type MoveSuggestion } from '@/lib/solver/expectimax';
-import { BUG_REPORT_URL, DONATE_URL, REPO_URL, SITE_NAME, TAGLINE } from '@/lib/site';
+import { BUG_REPORT_URL, DONATE_URL, REPO_URL, SITE_NAME } from '@/lib/site';
 import type { BoardReading } from '@/lib/vision/readBoard';
 
 type Phase = 'landing' | 'setup' | 'continue' | 'proposal' | 'gameover';
@@ -34,13 +37,6 @@ const SETUP_TILES = 2;
 const CELL_COUNT = SIZE * SIZE;
 /** Screenshot tiles read with less confidence than this are outlined for a check. */
 const UNSURE_READING = 0.1;
-
-const DIRECTION_WORD: Record<MoveSuggestion['direction'], string> = {
-  up: 'up',
-  down: 'down',
-  left: 'left',
-  right: 'right',
-};
 
 interface ImportNote {
   text: string;
@@ -61,7 +57,16 @@ interface ProposalSnapshot {
   afterBoard: BoardType;
 }
 
-export default function Home() {
+interface SolverAppProps {
+  /**
+   * Shown in the footer on the start screen only, so switching language never
+   * throws away a board in progress.
+   */
+  languageSwitcher?: ReactNode;
+}
+
+export function SolverApp({ languageSwitcher }: SolverAppProps) {
+  const t = useMessages();
   const [phase, setPhase] = useState<Phase>('landing');
   const [board, setBoard] = useState<BoardType>(emptyBoard);
   const [setupCount, setSetupCount] = useState(0);
@@ -195,26 +200,33 @@ export default function Home() {
   );
 
   // A screenshot fills the editor; the user checks it before solving.
-  const handleScreenshotRead = useCallback((reading: BoardReading) => {
-    const unsure = reading.confidence.map((row, r) =>
-      row.map((c, col) => reading.board[r][col] !== 0 && c < UNSURE_READING),
-    );
-    const unsureCount = unsure.flat().filter(Boolean).length;
-    const tileCount = reading.board.flat().filter((v) => v !== 0).length;
-    // A game that already shows a tile above the cap evidently doesn't end
-    // there, so the cap would only make the solver misjudge it.
-    const top = Math.max(...reading.board.flat());
-    const liftCap = maxTile !== null && top > maxTile;
-    if (liftCap) setMaxTile(null);
-    const capNote = liftCap ? ` Your game already has ${top}, so the tile limit is now off.` : '';
-    setBoard(reading.board);
-    setFlagged(unsureCount > 0 ? unsure : null);
-    setImportNote(
-      unsureCount > 0
-        ? { warn: true, text: `Read ${tileCount} tiles. Check the ${unsureCount} outlined, fix any that are wrong, then solve.${capNote}` }
-        : { warn: false, text: `Read ${tileCount} tiles. Check they match your game, then solve.${capNote}` },
-    );
-  }, [maxTile]);
+  const handleScreenshotRead = useCallback(
+    (reading: BoardReading) => {
+      const unsure = reading.confidence.map((row, r) =>
+        row.map((c, col) => reading.board[r][col] !== 0 && c < UNSURE_READING),
+      );
+      const unsureCount = unsure.flat().filter(Boolean).length;
+      const tileCount = reading.board.flat().filter((v) => v !== 0).length;
+      // A game that already shows a tile above the cap evidently doesn't end
+      // there, so the cap would only make the solver misjudge it.
+      const top = Math.max(...reading.board.flat());
+      const liftCap = maxTile !== null && top > maxTile;
+      if (liftCap) setMaxTile(null);
+      const capNote = liftCap ? ` ${format(t.importShot.capLifted, { top })}` : '';
+      setBoard(reading.board);
+      setFlagged(unsureCount > 0 ? unsure : null);
+      setImportNote(
+        unsureCount > 0
+          ? {
+              warn: true,
+              text:
+                format(t.importShot.readUnsure, { tiles: tileCount, unsure: unsureCount }) + capNote,
+            }
+          : { warn: false, text: format(t.importShot.readOk, { tiles: tileCount }) + capNote },
+      );
+    },
+    [maxTile, t],
+  );
 
   const handleScreenshotError = useCallback((message: string) => {
     setImportNote({ warn: true, text: message });
@@ -245,8 +257,8 @@ export default function Home() {
     (action: () => void, confirmLabel: string) => {
       if (hasProgress) {
         setPending({
-          title: 'Leave this game?',
-          message: 'Your current board and progress will be lost.',
+          title: t.leave.title,
+          message: t.leave.message,
           confirmLabel,
           action,
         });
@@ -254,22 +266,25 @@ export default function Home() {
         action();
       }
     },
-    [hasProgress],
+    [hasProgress, t],
   );
 
   const handleRestart = useCallback(
-    () => guardLeave(startGame, 'Restart'),
-    [guardLeave, startGame],
+    () => guardLeave(startGame, t.leave.restart),
+    [guardLeave, startGame, t],
   );
-  const handleMenu = useCallback(() => guardLeave(goToLanding, 'Leave'), [guardLeave, goToLanding]);
+  const handleMenu = useCallback(
+    () => guardLeave(goToLanding, t.leave.leave),
+    [guardLeave, goToLanding, t],
+  );
 
   // Read out by screen readers whenever it changes (the visible text is not a live region).
   const announcement = computing
-    ? 'Calculating best move…'
+    ? t.status.calculating
     : phase === 'proposal' && suggestion
-      ? `Best move: swipe ${DIRECTION_WORD[suggestion.direction]}.`
+      ? format(t.status.bestMove, { direction: t.directions[suggestion.direction] })
       : phase === 'gameover'
-        ? 'You’re out of moves.'
+        ? t.status.outOfMoves
         : '';
 
   return (
@@ -285,7 +300,7 @@ export default function Home() {
               type="button"
               className="topbar__title"
               onClick={handleMenu}
-              title="Back to the start screen"
+              title={t.topbar.homeTitle}
             >
               {SITE_NAME}
             </button>
@@ -307,35 +322,33 @@ export default function Home() {
       {phase === 'landing' && (
         <div className="landing">
           <h1 className="landing__title">{SITE_NAME}</h1>
-          <p className="landing__subtitle">{TAGLINE}</p>
+          <p className="landing__subtitle">{t.tagline}</p>
           <LandingDemo />
           <div className="landing__actions">
             <button
               type="button"
               className="btn btn--primary"
               onClick={startGame}
-              title="New game: tap your first two tiles and get the best move"
+              title={t.landing.startTitle}
             >
-              Start Solving
+              {t.landing.start}
             </button>
             <button
               type="button"
               className="btn btn--ghost"
               onClick={startContinue}
-              title="Already playing? Copy your board or import a screenshot of it"
+              title={t.landing.continueTitle}
             >
-              Continue Game
+              {t.landing.continue}
             </button>
           </div>
           <div className="landing__settings">
             <AdvancedSettings maxTile={maxTile} onMaxTileChange={handleMaxTileChange} />
           </div>
           <p className="landing__hint">
-            By default AI plays up to <strong>1024</strong> and avoids making a 2048, which ends the
-            game in many versions. Change this in <strong>Advanced settings</strong>.
+            <Rich text={t.landing.hintLimit} />
             <br />
-            Already mid-game? Use <strong>Continue Game</strong> to recreate your current board, or
-            import a screenshot of it.
+            <Rich text={t.landing.hintContinue} />
           </p>
           <LandingInfo />
         </div>
@@ -344,26 +357,24 @@ export default function Home() {
       {phase === 'setup' && (
         <div className="stage">
           <p className="instruction instruction--lead">
-            Place your first two tiles (both are <strong>2</strong>) — tap two empty cells.
+            <Rich text={t.setup.lead} />
             <br />
-            {setupCount}/{SETUP_TILES} placed.
+            {format(t.setup.progress, { count: setupCount, total: SETUP_TILES })}
           </p>
           <Board
             board={board}
             onCellClick={handleSetupClick}
-            label="Your board"
-            cellHint="Place a 2 here"
+            label={t.board.yourBoard}
+            cellHint={t.setup.cellHint}
           />
-          <p className="status">{computing ? 'Calculating best move…' : ''}</p>
+          <p className="status">{computing ? t.status.calculating : ''}</p>
         </div>
       )}
 
       {phase === 'continue' && (
         <div className="stage">
           <p className="instruction">
-            Recreate your current game: import a screenshot of it, or pick a value and tap cells to
-            fill in your board. Tap a filled cell to change it, or choose <strong>Erase</strong> to
-            clear one.
+            <Rich text={t.continueGame.instruction} />
           </p>
           <ScreenshotImport
             onRead={handleScreenshotRead}
@@ -381,19 +392,23 @@ export default function Home() {
             onCellClick={handleContinueClick}
             allowOverwrite
             flagged={flagged ?? undefined}
-            label="Your board"
-            cellHint={paletteValue === 0 ? 'Clear this cell' : `Place ${paletteValue} here`}
+            label={t.board.yourBoard}
+            cellHint={
+              paletteValue === 0
+                ? t.continueGame.clearCell
+                : format(t.continueGame.placeValue, { value: paletteValue })
+            }
           />
           <button
             type="button"
             className="btn btn--primary"
             onClick={handleContinueSolve}
             disabled={computing || countEmpty(board) === CELL_COUNT}
-            title="Get the best move for this board"
+            title={t.continueGame.solveTitle}
           >
-            Solve from here
+            {t.continueGame.solve}
           </button>
-          <p className="status">{computing ? 'Calculating best move…' : ''}</p>
+          <p className="status">{computing ? t.status.calculating : ''}</p>
         </div>
       )}
 
@@ -401,27 +416,26 @@ export default function Home() {
         <div className="stage">
           <p className="instruction instruction--lead">
             <span className="instruction__line">
-              Best move: swipe <strong>{DIRECTION_WORD[suggestion.direction]}</strong>.
+              <Rich
+                text={format(t.proposal.best, { direction: t.directions[suggestion.direction] })}
+              />
             </span>{' '}
             <span className="instruction__line">
-              Make that move, then tap the <strong>highlighted</strong> board where the new tile
-              appeared.
+              <Rich text={t.proposal.next} />
             </span>
           </p>
           {maxTile !== null && afterBoard.some((row) => row.some((v) => v > maxTile)) && (
-            <p className="hint hint--warn">
-              No move avoids {maxTile * 2} anymore — this one forms it and ends the game.
-            </p>
+            <p className="hint hint--warn">{format(t.proposal.capWarn, { next: maxTile * 2 })}</p>
           )}
           {/* A grid, so the tile-value picker sits right under the board it is for. */}
           <div className="comparison">
-            <span className="comparison__caption comparison__caption--now">Now</span>
+            <span className="comparison__caption comparison__caption--now">{t.proposal.now}</span>
             <div className="comparison__board comparison__board--now">
-              <Board board={board} variant="small" label="Board before the move" />
+              <Board board={board} variant="small" label={t.proposal.boardBefore} />
             </div>
             <DirectionArrow direction={suggestion.direction} />
             <span className="comparison__caption comparison__caption--active">
-              Tap the new tile’s spot ↓
+              {t.proposal.tapSpot}
             </span>
             <div className="comparison__board comparison__board--active">
               <Board
@@ -429,61 +443,69 @@ export default function Home() {
                 variant="small"
                 onCellClick={handleAddTileClick}
                 onCellAltClick={handleAddTileAltClick}
-                label="Board after the move: tap where the new tile appeared"
-                cellHint={`Tap: a new ${newTileValue} here. Long-press or right-click: a ${newTileValue === 2 ? 4 : 2}`}
+                label={t.proposal.boardAfter}
+                cellHint={format(t.proposal.cellHint, {
+                  value: newTileValue,
+                  alt: newTileValue === 2 ? 4 : 2,
+                })}
               />
             </div>
             <div className="comparison__picker">
               <div className="addtile">
-                <span className="addtile__label">New tile value</span>
+                <span className="addtile__label">{t.proposal.newTileValue}</span>
                 <NumberSelector value={newTileValue} onChange={setNewTileValue} />
               </div>
               <p className="hint">
-                Tap drops <strong>{newTileValue}</strong>; long-press (or right-click) drops{' '}
-                <strong>{newTileValue === 2 ? 4 : 2}</strong>.
+                <Rich
+                  text={format(t.proposal.tapHint, {
+                    value: newTileValue,
+                    alt: newTileValue === 2 ? 4 : 2,
+                  })}
+                />
               </p>
             </div>
           </div>
-          <p className="status">{computing ? 'Calculating best move…' : ''}</p>
+          <p className="status">{computing ? t.status.calculating : ''}</p>
         </div>
       )}
 
       {phase === 'gameover' && (
         <div className="stage">
           <div className="gameover">
-            <h2>You&apos;re out of moves</h2>
-            <Board board={board} variant="small" label="Final board" />
+            <h2>{t.gameOver.title}</h2>
+            <Board board={board} variant="small" label={t.gameOver.finalBoard} />
             <button
               type="button"
               className="btn btn--primary"
               onClick={startGame}
-              title="Start a new game"
+              title={t.gameOver.restartTitle}
             >
-              Restart
+              {t.gameOver.restart}
             </button>
           </div>
         </div>
       )}
 
       <footer className="footer">
+        {phase === 'landing' && languageSwitcher}
         <p className="footer__credit">
-          Implemented by <strong>FlexDev</strong>
+          <Rich text={t.footer.credit} />
         </p>
         {/* New tab, so following a link mid-game never loses the board. */}
-        <nav className="footer__links" aria-label="Project links">
+        <nav className="footer__links" aria-label={t.footer.links}>
           <a
             href={DONATE_URL}
             target="_blank"
             rel="noopener noreferrer"
-            title="Donate any amount via monobank"
+            title={t.footer.donateTitle}
           >
-            Support this project
+            {t.footer.donate}
           </a>
           <a href={BUG_REPORT_URL} target="_blank" rel="noopener noreferrer">
-            Report a bug
+            {t.footer.bug}
           </a>
           <a href={REPO_URL} target="_blank" rel="noopener noreferrer">
-            Source on GitHub
+            {t.footer.source}
           </a>
         </nav>
       </footer>

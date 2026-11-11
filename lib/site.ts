@@ -1,6 +1,7 @@
 /**
  * Site identity shared by metadata, the manifest, robots.txt, the sitemap and
- * the social card, so the name and canonical URL are defined in one place.
+ * the social card, so the name and canonical URL are defined in one place. The
+ * name is a brand and stays in English on every language's page.
  *
  * SITE_URL is the canonical production domain. It is fixed rather than read
  * from VERCEL_PROJECT_PRODUCTION_URL because the project has more than one
@@ -22,8 +23,4 @@ export const BUG_REPORT_URL = `${REPO_URL}/issues/new?template=bug_report.yml`;
  */
 export const DONATE_URL = 'https://send.monobank.ua/jar/6BdkNMdYJJ';
 
-export const TAGLINE =
-  'Enter your board — AI looks several moves ahead and finds you the best swipe.';
-
-export const DESCRIPTION =
-  'Free 2048 AI that tells you the best swipe for the game you’re playing. Enter your board once, then just tap in each new tile. Runs in your browser.';
+// The tagline, description and all other UI text live in lib/i18n/messages/.
