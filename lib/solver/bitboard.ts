@@ -4,8 +4,9 @@
  *
  * A row is 16 bits holding four 4-bit tile ranks (rank = log2 of the value,
  * 0 = empty), column 0 in the lowest nibble. Sliding a row and scoring it are
- * lookups in tables precomputed for all 65,536 rows, as nneonneo's C++ does;
- * up/down moves and column scores work on the transposed rows.
+ * lookups in tables precomputed for all 65,536 rows, as nneonneo's C++ does
+ * (MIT-licensed; see THIRD_PARTY_NOTICES.md); up/down moves and column scores
+ * work on the transposed rows.
  *
  * Everything else mirrors the array search exactly — move order, spawn order,
  * cut-offs, node budget, cache — so both return identical moves and scores

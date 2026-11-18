@@ -1,7 +1,8 @@
 /**
  * Board evaluation — a faithful TypeScript port of nneonneo's proven 2048-ai
  * heuristic (https://github.com/nneonneo/2048-ai), implemented from its
- * documented weights rather than copied.
+ * documented weights rather than copied. nneonneo/2048-ai is MIT-licensed;
+ * its notice is in THIRD_PARTY_NOTICES.md.
  *
  * The heuristic rewards: empty space, available merges, and monotonic rows /
  * columns (values consistently increasing toward a corner); it penalises the
