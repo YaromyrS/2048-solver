@@ -88,4 +88,9 @@ If AI suggested a bad move, include the board so it can be reproduced.
 ## Credits
 
 The evaluation heuristic and its weights come from
-[nneonneo/2048-ai](https://github.com/nneonneo/2048-ai). Built by FlexDev.
+[nneonneo/2048-ai](https://github.com/nneonneo/2048-ai) (MIT; its notice is in
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)). Built by FlexDev.
+
+## License
+
+[MIT](LICENSE).
